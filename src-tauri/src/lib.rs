@@ -4,6 +4,7 @@ pub mod commands;
 pub mod commands_envcheck;
 pub mod commands_heavy;
 pub mod commands_homes;
+pub mod commands_onboarding;
 pub mod commands_processes;
 pub mod commands_runtime;
 pub mod envcheck;
@@ -12,6 +13,7 @@ pub mod envcheck_sys;
 pub mod homes;
 pub mod launcher;
 pub mod launcher_process;
+pub mod onboarding;
 pub mod registry;
 pub mod runtime_install;
 pub mod runtime_install_core;
@@ -19,6 +21,10 @@ pub mod runtime_install_core;
 #[cfg(test)]
 #[path = "envcheck_tests.rs"]
 mod envcheck_tests;
+
+#[cfg(test)]
+#[path = "onboarding_tests.rs"]
+mod onboarding_tests;
 
 #[cfg(test)]
 #[path = "launcher_process_tests.rs"]
@@ -54,6 +60,10 @@ pub fn run() {
             commands_envcheck::env_snapshot,
             commands_runtime::install_runtime,
             commands_runtime::runtime_info,
+            commands_onboarding::onboarding_get,
+            commands_onboarding::onboarding_advance,
+            commands_onboarding::onboarding_complete,
+            commands_onboarding::repair_runtime,
         ])
         .manage(commands_processes::ProcessMap::default())
         .run(tauri::generate_context!())

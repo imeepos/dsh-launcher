@@ -37,6 +37,18 @@ pub fn install_runtime(on_line: impl FnMut(&str)) -> RegResult<RuntimeInfo> {
     install_runtime_into(&registry::launcher_base_dir(), on_line)
 }
 
+/// 重装:清掉 runtime 目录与 runtime.json 后全新安装(修复中心用)。
+pub fn reinstall_runtime(mut on_line: impl FnMut(&str)) -> RegResult<RuntimeInfo> {
+    let base = registry::launcher_base_dir();
+    let rt = base.join("runtime");
+    if rt.exists() {
+        on_line("清理旧运行时目录");
+        std::fs::remove_dir_all(&rt).map_err(|e| format!("清理运行时失败:{e}"))?;
+    }
+    let _ = std::fs::remove_file(base.join("runtime.json"));
+    install_runtime_into(&base, on_line)
+}
+
 /// 安装到指定目录(冒烟测试可注入临时目录)。
 pub fn install_runtime_into(base: &Path, mut on_line: impl FnMut(&str)) -> RegResult<RuntimeInfo> {
     let version = resolve_version(&mut on_line);
