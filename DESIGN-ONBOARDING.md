@@ -79,15 +79,18 @@
 每类一个模板：标题、一句原因、建议动作、重试按钮。所有网络操作有超时与进度；
 所有下载落盘前过 sha256；任何失败都可「复制详情」（脱敏诊断），方便萌新求助。
 
-## 6. 数据模型增量（registry.json）
+## 6. 数据模型增量（实现落地版）
 
 ```jsonc
+// ~/.dsh-launcher/runtime.json —— 运行时唯一事实源（独立于 registry.json）
 {
-  "runtime": { "nodeVersion": "22.x.x", "bin": "~/.dsh-launcher/runtime/.../bin",
-               "installedAt": "...", "sha256": "..." },
-  "settings": { "npmRegistry": "https://registry.npmmirror.com",
-                "nodeDistMirror": "https://npmmirror.com/mirrors/node", "useSystemNode": false },
-  "onboarding": { "v": 1, "completed": false, "step": "install", "checks": [] }
+  "nodeVersion": "22.x.x", "bin": "~/.dsh-launcher/runtime/.../bin",
+  "installedAtMs": 0, "sha256": "...", "source": "official|npmmirror"
+}
+// ~/.dsh-launcher/registry.json 增量字段
+{
+  "settings": { "npmRegistry": null, "nodeDistMirror": null, "useSystemNode": false },
+  "onboarding": { "step": "welcome", "completed": false }
 }
 ```
 
@@ -97,11 +100,15 @@
 
 ## 7. 模块拆分（守 200 行 / 50 行函数）
 
-- Rust：`envcheck.rs`（检查项与系统快照）、`runtime_install.rs`（下载/校验/解压/换源）、
-  `onboarding.rs`（状态机与步进）、`repair.rs`（修复动作）；`commands.rs` 只做命令注册。
-- 前端：`components/onboarding/`（WizardShell、CheckList、FixCard、StepMode、StepHome、StepLaunch）、
-  `hooks/useOnboarding.ts`、`hooks/useEnvCheck.ts`；主界面加 `EnvStatusBar` 与修复中心抽屉。
-- 文案常量独立 `src/i18n/zh.ts`，错误模板集中管理。
+- Rust：`envcheck.rs` + `envcheck_sys.rs`（纯检查逻辑）、`envcheck_probe.rs`（系统快照与网络探测）、
+  `runtime_install.rs` + `runtime_install_core.rs`（下载/校验/解压/换源）、`onboarding.rs`（状态机与步进）、
+  `launcher_env.rs`（runtime PATH 注入与 npm 解析）；修复动作并入 `commands_onboarding.rs`
+  （repair_runtime / reinstall_runtime），无独立 repair.rs。
+- 前端：`components/onboarding/`（WizardShell、StepBody、StepEnds、StepCheck、StepFix、StepMode、
+  StepInstall、StepHome、StepLaunch）、`hooks/useOnboarding.ts`、`hooks/useEnvCheck.ts`、
+  `hooks/useRuntimeRepair.ts`、`hooks/useCrawlProgress.ts`、`hooks/useLaunchObservation.ts`；
+  主界面 `EnvStatusBar`（快速预检 + 修复抽屉）。
+- 文案随组件就近维护；错误模板集中在后端错误分类（§5）。
 
 ## 8. 分发注意
 
