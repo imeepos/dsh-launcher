@@ -5,65 +5,35 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
+use super::launcher_env::{prepare_cmd_env, resolve_npm};
 use super::launcher_runtime::{
-    expand_tilde, home_dir, make_group_leader, strip_dsh_env, tail_lines, wait_with_output_lines,
-    INSTALL_TIMEOUT,
+    expand_tilde, make_group_leader, tail_lines, wait_with_output_lines, INSTALL_TIMEOUT,
 };
 use crate::registry::{validate_id, versions_dir, RegResult};
 
-pub fn resolve_npm() -> RegResult<PathBuf> {
-    if let Ok(p) = std::env::var("DSH_LAUNCHER_NPM") {
-        let p = expand_tilde(&p);
-        if p.is_file() {
-            return Ok(p);
-        }
-        return Err(format!(
-            "DSH_LAUNCHER_NPM 指向的文件不存在: {}",
-            p.display()
-        ));
-    }
-    if let Some(p) = which("npm") {
-        return Ok(p);
-    }
-    let candidates = [
-        home_dir().join(".vite-plus/bin/npm"),
-        PathBuf::from("/opt/homebrew/bin/npm"),
-        PathBuf::from("/usr/local/bin/npm"),
-    ];
-    for c in &candidates {
-        if c.is_file() {
-            return Ok(c.clone());
-        }
-    }
-    Err("找不到 npm:不在 PATH。可设 DSH_LAUNCHER_NPM 环境变量指定 npm 路径".into())
-}
-
-fn which(name: &str) -> Option<PathBuf> {
-    let path = std::env::var_os("PATH")?;
-    for dir in std::env::split_paths(&path) {
-        let candidate = dir.join(name);
-        if is_executable(&candidate) {
-            return Some(candidate);
-        }
-    }
-    None
-}
-
-#[cfg(unix)]
-fn is_executable(p: &Path) -> bool {
-    use std::os::unix::fs::PermissionsExt;
-    p.is_file()
-        && p.metadata()
-            .map(|m| m.permissions().mode() & 0o111 != 0)
-            .unwrap_or(false)
-}
-
 /// npm 安装一个版本。重试语义:自动清掉已存在的 versions/<id> 目录,从头安装。
+/// registry 覆盖来自 settings.npmRegistry(萌新国内镜像刚需)。
 pub fn install_npm(spec: &str, id: &str, on_line: impl FnMut(&str)) -> RegResult<PathBuf> {
     validate_id(id)?;
     let dir = versions_dir().join(id);
     let npm = resolve_npm()?;
-    install_npm_into(&dir, &npm, spec, INSTALL_TIMEOUT, on_line)
+    let registry = registry_override();
+    install_npm_into(
+        &dir,
+        &npm,
+        spec,
+        registry.as_deref(),
+        INSTALL_TIMEOUT,
+        on_line,
+    )
+}
+
+/// settings.npmRegistry;空白视为未设置。
+fn registry_override() -> Option<String> {
+    crate::commands::peek_registry()
+        .ok()
+        .and_then(|r| r.settings.npm_registry)
+        .filter(|s| !s.trim().is_empty())
 }
 
 /// 安装到指定目录,npm 路径与超时可注入(测试用假 npm)。
@@ -72,6 +42,7 @@ pub fn install_npm_into(
     dir: &Path,
     npm: &Path,
     spec: &str,
+    registry: Option<&str>,
     timeout: Duration,
     mut on_line: impl FnMut(&str),
 ) -> RegResult<PathBuf> {
@@ -82,7 +53,10 @@ pub fn install_npm_into(
     fs::create_dir_all(dir).map_err(|e| format!("创建 {} 失败: {e}", dir.display()))?;
     let mut cmd = Command::new(npm);
     cmd.args(["install", "--prefix"]).arg(dir).arg(spec);
-    strip_dsh_env(&mut cmd);
+    if let Some(r) = registry {
+        cmd.arg("--registry").arg(r);
+    }
+    prepare_cmd_env(&mut cmd);
     make_group_leader(&mut cmd);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())

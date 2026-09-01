@@ -68,6 +68,7 @@ mod tests {
             &root.join("v"),
             &npm,
             "@x/y@1",
+            None,
             Duration::from_millis(400),
             |_| {},
         );
@@ -87,6 +88,7 @@ mod tests {
             &root.join("v"),
             &npm,
             "@x/y@1",
+            None,
             Duration::from_secs(30),
             |_| {},
         );
@@ -105,7 +107,8 @@ mod tests {
             "npm",
             "#!/bin/sh\ncd \"$3\" || exit 1\nmkdir -p node_modules/.bin\nprintf '#!/bin/sh\necho dsh\n' > node_modules/.bin/dsh\nchmod +x node_modules/.bin/dsh\nprintf stale > marker.txt\n",
         );
-        let bin = install_npm_into(&dir, &npm1, "@x/y@1", Duration::from_secs(30), |_| {}).unwrap();
+        let bin =
+            install_npm_into(&dir, &npm1, "@x/y@1", None, Duration::from_secs(30), |_| {}).unwrap();
         assert!(bin.is_file(), "node_modules/.bin/dsh 应存在");
         assert!(dir.join("marker.txt").is_file());
 
@@ -116,7 +119,7 @@ mod tests {
             "#!/bin/sh\ncd \"$3\" || exit 1\nmkdir -p node_modules/.bin\nprintf '#!/bin/sh\necho dsh\n' > node_modules/.bin/dsh\nchmod +x node_modules/.bin/dsh\n",
         );
         let bin2 =
-            install_npm_into(&dir, &npm2, "@x/y@1", Duration::from_secs(30), |_| {}).unwrap();
+            install_npm_into(&dir, &npm2, "@x/y@1", None, Duration::from_secs(30), |_| {}).unwrap();
         assert!(bin2.is_file());
         assert!(
             !dir.join("marker.txt").is_file(),

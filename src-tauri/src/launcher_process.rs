@@ -11,7 +11,8 @@ use std::time::Duration;
 
 use fs4::FileExt;
 
-use crate::launcher::{expand_tilde, make_group_leader, strip_dsh_env};
+use crate::launcher::launcher_env::prepare_cmd_env;
+use crate::launcher::{expand_tilde, make_group_leader};
 use crate::registry::RegResult;
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -116,7 +117,7 @@ pub fn build_start_command(
     }
     let mut c = Command::new(expand_tilde(tokens[0]));
     c.args(&args);
-    strip_dsh_env(&mut c);
+    prepare_cmd_env(&mut c);
     c.env("DSH_HOME", home_path);
     if let Some(cwd) = cwd.map(expand_tilde) {
         c.current_dir(cwd);
