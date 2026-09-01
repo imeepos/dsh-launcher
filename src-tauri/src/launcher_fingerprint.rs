@@ -5,8 +5,9 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
+use super::launcher_env::prepare_cmd_env;
 use super::launcher_runtime::{
-    expand_tilde, make_group_leader, strip_dsh_env, wait_with_output_lines, FINGERPRINT_TIMEOUT,
+    expand_tilde, make_group_leader, wait_with_output_lines, FINGERPRINT_TIMEOUT,
 };
 use crate::registry::RegResult;
 
@@ -53,7 +54,7 @@ pub fn fingerprint_with_timeout(
         }
         cmd.current_dir(dir);
     }
-    strip_dsh_env(&mut cmd);
+    prepare_cmd_env(&mut cmd);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

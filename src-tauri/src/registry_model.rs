@@ -57,6 +57,21 @@ pub struct HistoryEntry {
     pub exit_code: Option<i32>,
 }
 
+/// 萌新首跑设置(DESIGN-ONBOARDING.md §6);全部字段可缺省,老文件零迁移。
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Settings {
+    /// npm registry 覆盖;None 用 npm 默认源
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub npm_registry: Option<String>,
+    /// node 发行版镜像;None 双源自动择优
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub node_dist_mirror: Option<String>,
+    /// 高级:改用系统 Node(默认 false,优先自带运行时)
+    #[serde(default)]
+    pub use_system_node: bool,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Registry {
@@ -68,4 +83,7 @@ pub struct Registry {
     /// M3 起启用
     #[serde(default)]
     pub history: Vec<HistoryEntry>,
+    /// O1 起启用:萌新首跑设置
+    #[serde(default)]
+    pub settings: Settings,
 }

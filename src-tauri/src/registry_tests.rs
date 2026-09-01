@@ -142,4 +142,15 @@ mod tests {
         assert!(validate_id("v0.1.1-rc.2").is_ok());
         assert!(validate_id("dev-deepseek-harness").is_ok());
     }
+
+    #[test]
+    fn old_registry_without_settings_loads_with_defaults() {
+        let path = temp_registry_path("no-settings");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, r#"{"versions":[],"homes":[],"history":[]}"#).unwrap();
+        let reg = load(&path).expect("老格式应可加载");
+        assert!(!reg.settings.use_system_node);
+        assert!(reg.settings.npm_registry.is_none());
+        assert!(reg.settings.node_dist_mirror.is_none());
+    }
 }
