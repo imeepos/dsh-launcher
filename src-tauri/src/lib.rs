@@ -1,13 +1,21 @@
 //! dsh-launcher lib:注册表、进程操作与 Tauri 命令装配。
 
 pub mod commands;
+pub mod commands_envcheck;
 pub mod commands_heavy;
 pub mod commands_homes;
 pub mod commands_processes;
+pub mod envcheck;
+pub mod envcheck_probe;
+pub mod envcheck_sys;
 pub mod homes;
 pub mod launcher;
 pub mod launcher_process;
 pub mod registry;
+
+#[cfg(test)]
+#[path = "envcheck_tests.rs"]
+mod envcheck_tests;
 
 #[cfg(test)]
 #[path = "launcher_process_tests.rs"]
@@ -34,6 +42,9 @@ pub fn run() {
             commands_processes::start_profile,
             commands_processes::stop_profile,
             commands_processes::list_running,
+            commands_envcheck::env_check,
+            commands_envcheck::env_check_fast,
+            commands_envcheck::env_snapshot,
         ])
         .manage(commands_processes::ProcessMap::default())
         .run(tauri::generate_context!())
