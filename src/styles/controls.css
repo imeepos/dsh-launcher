@@ -1,0 +1,14 @@
+button { background: #2a2d34; color: #e4e6eb; border: 1px solid #3a3d45; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; }
+button:hover:not(:disabled) { background: #34373f; }
+button:disabled { opacity: 0.5; cursor: default; }
+button.primary { background: #2563eb; border-color: #2563eb; }
+button.primary:hover:not(:disabled) { background: #1d4fd8; }
+button.danger { color: #f87171; border-color: #57262a; }
+button.danger:hover:not(:disabled) { background: #2d1a1c; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid; }
+.badge-npm { color: #7ab8ff; border-color: #1d4fd8; background: rgba(37, 99, 235, 0.15); }
+.badge-dev { color: #6ee7a0; border-color: #1d7a4c; background: rgba(34, 197, 94, 0.12); }
+.badge-manual { color: #c9cdd6; border-color: #4a4e58; background: rgba(148, 156, 170, 0.12); }
+.kind-picker { display: flex; gap: 6px; }
+.kind-btn { flex: 1; padding: 7px 0; }
+.kind-btn.active { background: #2563eb; border-color: #2563eb; }

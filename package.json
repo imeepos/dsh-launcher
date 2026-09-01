@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check:size": "node scripts/check-size.mjs",
     "preview": "vite preview",
     "tauri": "tauri"
   },
