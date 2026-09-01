@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::launcher::{expand_tilde, fingerprint, home_dir, install_npm, remove_version_dir, validate_dev_repo, DEV_BIN};
+    use std::path::PathBuf;
     use crate::registry::sanitize_id_fragment;
 
     #[test]

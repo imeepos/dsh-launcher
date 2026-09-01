@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::registry::{load, save, sanitize_id_fragment, validate_id, HomeEntry, HistoryEntry, Registry, VersionEntry, VersionKind};
+    use std::fs;
+    use std::path::PathBuf;
 
     fn temp_registry_path(tag: &str) -> PathBuf {
         let dir =

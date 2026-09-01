@@ -8,5 +8,5 @@ mod launcher_runtime;
 #[path = "launcher_tests.rs"]
 mod launcher_tests;
 
-pub use launcher_npm::{install_npm, remove_version_dir, validate_dev_repo};
-pub use launcher_runtime::{expand_tilde, fingerprint, home_dir, resolve_npm, DEV_BIN};
+pub use launcher_npm::{install_npm, remove_version_dir, resolve_npm, validate_dev_repo};
+pub use launcher_runtime::{expand_tilde, fingerprint, home_dir, DEV_BIN};

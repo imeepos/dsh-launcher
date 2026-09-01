@@ -1,3 +1,6 @@
+use super::registry_io::validate_id;
+use super::registry_model::{RegResult, Registry, VersionEntry};
+
 impl Registry {
     pub fn find_version(&self, id: &str) -> Option<&VersionEntry> {
         self.versions.iter().find(|v| v.id == id)

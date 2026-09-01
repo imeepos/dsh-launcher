@@ -1,6 +1,40 @@
 import type { VersionEntry } from "../api";
 import KindBadge from "./KindBadge";
 
+type VersionRowProps = {
+  version: VersionEntry;
+  busyId: string | null;
+  onFingerprint: (id: string) => void;
+  onDelete: (version: VersionEntry) => void;
+};
+
+function VersionRow({ version, busyId, onFingerprint, onDelete }: VersionRowProps) {
+  return (
+    <tr>
+      <td>{version.id}</td>
+      <td>
+        <KindBadge kind={version.kind} />
+      </td>
+      <td className="mono">{version.spec ?? version.bin}</td>
+      <td className="mono">{version.cwd ?? "—"}</td>
+      <td className="mono">{version.fingerprint ?? "未采集"}</td>
+      <td>
+        <div className="row-actions">
+          <button
+            onClick={() => onFingerprint(version.id)}
+            disabled={busyId !== null}
+          >
+            {busyId === version.id ? "采集中…" : "指纹"}
+          </button>
+          <button className="danger" onClick={() => onDelete(version)}>
+            删除
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function VersionTable({
   versions,
   busyId,
@@ -36,29 +70,14 @@ export default function VersionTable({
             </td>
           </tr>
         ) : (
-          versions.map((v) => (
-            <tr key={v.id}>
-              <td>{v.id}</td>
-              <td>
-                <KindBadge kind={v.kind} />
-              </td>
-              <td className="mono">{v.spec ?? v.bin}</td>
-              <td className="mono">{v.cwd ?? "—"}</td>
-              <td className="mono">{v.fingerprint ?? "未采集"}</td>
-              <td>
-                <div className="row-actions">
-                  <button
-                    onClick={() => onFingerprint(v.id)}
-                    disabled={busyId !== null}
-                  >
-                    {busyId === v.id ? "采集中…" : "指纹"}
-                  </button>
-                  <button className="danger" onClick={() => onDelete(v)}>
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
+          versions.map((version) => (
+            <VersionRow
+              key={version.id}
+              version={version}
+              busyId={busyId}
+              onFingerprint={onFingerprint}
+              onDelete={onDelete}
+            />
           ))
         )}
       </tbody>
