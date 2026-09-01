@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::registry::{load, save, sanitize_id_fragment, validate_id, HomeEntry, HistoryEntry, Registry, VersionEntry, VersionKind};
+    use crate::registry::{
+        load, sanitize_id_fragment, save, validate_id, HistoryEntry, HomeEntry, Registry,
+        VersionEntry, VersionKind,
+    };
     use std::fs;
     use std::path::PathBuf;
 

@@ -11,8 +11,7 @@ mod registry_model;
 mod registry_tests;
 
 pub use registry_io::{
-    default_registry_path, launcher_base_dir, load, now_ms, save, sanitize_id_fragment, validate_id,
-    versions_dir,
+    default_registry_path, launcher_base_dir, load, now_ms, sanitize_id_fragment, save,
+    validate_id, versions_dir,
 };
-pub use registry_methods::*;
 pub use registry_model::*;
