@@ -11,6 +11,8 @@ import VersionTable from "./components/VersionTable";
 import Toolbar from "./components/Toolbar";
 import useVersions from "./hooks/useVersions";
 import { showFailure } from "./hooks/toastStore";
+import AppGate from "./components/AppGate";
+import EnvStatusBar from "./components/EnvStatusBar";
 
 function App() {
   const { versions, refresh } = useVersions();
@@ -31,12 +33,14 @@ function App() {
   );
 
   return (
-    <AppShell>
-      <Toolbar
-        onRefresh={refresh}
-        onManualAdd={() => setManualOpen(true)}
-        onInstall={() => setInstallOpen(true)}
-      />
+    <AppGate>
+      <AppShell>
+        <EnvStatusBar />
+        <Toolbar
+          onRefresh={refresh}
+          onManualAdd={() => setManualOpen(true)}
+          onInstall={() => setInstallOpen(true)}
+        />
       <VersionTable versions={versions} onFingerprint={doFingerprint} onDelete={setDeleteTarget} />
       <HomesPanel versions={versions} />
       <ProcessPanel />
@@ -53,7 +57,8 @@ function App() {
           onDeleted={refreshAfterAction}
         />
       )}
-    </AppShell>
+      </AppShell>
+    </AppGate>
   );
 }
 

@@ -26,3 +26,21 @@ pub async fn install_runtime(app: tauri::AppHandle) -> RegResult<RuntimeInfo> {
 pub async fn runtime_info() -> RegResult<Option<RuntimeInfo>> {
     run_blocking(move || Ok(runtime_install::read_runtime())).await
 }
+
+/// 查 npm 上 @deepseek-ai/dsh 的最新版本号(向导快速模式用)。
+#[tauri::command]
+pub async fn npm_latest_version() -> RegResult<String> {
+    run_blocking(move || {
+        let npm = crate::launcher::launcher_env::resolve_npm()?;
+        let out = std::process::Command::new(npm)
+            .args(["view", "@deepseek-ai/dsh", "version"])
+            .output()
+            .map_err(|e| format!("启动 npm 失败:{e}"))?;
+        let text = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !out.status.success() || text.is_empty() {
+            return Err("查询最新版本失败".into());
+        }
+        Ok(text)
+    })
+    .await
+}

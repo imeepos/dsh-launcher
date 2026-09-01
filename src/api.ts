@@ -1,5 +1,7 @@
 // Tauri command 的类型化封装。字段与 src-tauri/src/registry.rs 的 serde 命名一致(camelCase)。
 
+export * from "./wizard-api";
+
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
