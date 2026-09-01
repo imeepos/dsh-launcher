@@ -1,6 +1,7 @@
 //! dsh-launcher lib:注册表、进程操作与 Tauri 命令装配。
 
 pub mod commands;
+pub mod commands_heavy;
 pub mod commands_homes;
 pub mod commands_processes;
 pub mod homes;
@@ -19,10 +20,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::list_versions,
             commands::add_manual_version,
-            commands::fingerprint_version,
-            commands::install_npm_version,
+            commands_heavy::fingerprint_version,
+            commands_heavy::install_npm_version,
             commands::add_dev_version,
-            commands::remove_version,
+            commands_heavy::remove_version,
             commands_homes::list_homes,
             commands_homes::add_home,
             commands_homes::create_home,

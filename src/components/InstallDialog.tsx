@@ -1,11 +1,13 @@
 import { useState } from "react";
 import useInstallLog from "../hooks/useInstallLog";
+import useInstallProgress from "../hooks/useInstallProgress";
 import useInstallRunner, { type InstallKind } from "../hooks/useInstallRunner";
 import KindPicker from "./install-dialog/KindPicker";
 import { DevFields, NpmFields } from "./install-dialog/InstallFields";
-import InstallLogView from "./install-dialog/InstallLogView";
+import InstallLogSection from "./install-dialog/InstallLogSection";
+import InstallProgress from "./install-dialog/InstallProgress";
 import InstallActions from "./install-dialog/InstallActions";
-import { submitLabel } from "./install-dialog/submitLabel";
+import { submitLabels } from "./install-dialog/submitLabel";
 
 const DEV_REPO_PLACEHOLDER = "/Users/imeepos/ext512/ymm-001/deepseek-harness";
 const DEFAULT_NPM_VERSION = "0.1.1-rc.2";
@@ -27,6 +29,8 @@ export default function InstallDialog({
     onDone,
     onClose,
   );
+  const labels = submitLabels(err, kind);
+  const progress = useInstallProgress(running, log.length, err !== null);
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
@@ -43,15 +47,17 @@ export default function InstallDialog({
             placeholder={DEV_REPO_PLACEHOLDER}
           />
         )}
-        {kind === "npm" && (log.length > 0 || running) && (
-          <InstallLogView log={log} logRef={logRef} />
+        {kind === "npm" && (
+          <InstallProgress percent={progress.percent} visible={progress.visible} />
         )}
+        {kind === "npm" && <InstallLogSection log={log} logRef={logRef} />}
         {err && <p className="error">{err}</p>}
         <InstallActions
           onClose={onClose}
           onRun={() => void run()}
           running={running}
-          label={submitLabel(running, err, kind)}
+          idleLabel={labels.idle}
+          busyLabel={labels.busy}
         />
       </div>
     </div>

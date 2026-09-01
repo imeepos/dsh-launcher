@@ -1,10 +1,17 @@
-button { background: #2a2d34; color: #e4e6eb; border: 1px solid #3a3d45; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; }
+button { background: #2a2d34; color: #e4e6eb; border: 1px solid #3a3d45; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
 button:hover:not(:disabled) { background: #34373f; }
+button:active:not(:disabled) { transform: translateY(1px); }
 button:disabled { opacity: 0.5; cursor: default; }
 button.primary { background: #2563eb; border-color: #2563eb; }
 button.primary:hover:not(:disabled) { background: #1d4fd8; }
 button.danger { color: #f87171; border-color: #57262a; }
 button.danger:hover:not(:disabled) { background: #2d1a1c; }
+button.is-success { color: #6ee7a0; border-color: #1d7a4c; }
+button.is-success.primary { background: #12271c; }
+button.is-error { color: #f87171; border-color: #57262a; }
+.spinner { width: 11px; height: 11px; flex: none; border: 2px solid rgba(228, 230, 235, 0.25); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.state-icon { font-size: 12px; font-weight: 700; line-height: 1; }
 .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid; }
 .badge-npm { color: #7ab8ff; border-color: #1d4fd8; background: rgba(37, 99, 235, 0.15); }
 .badge-dev { color: #6ee7a0; border-color: #1d7a4c; background: rgba(34, 197, 94, 0.12); }

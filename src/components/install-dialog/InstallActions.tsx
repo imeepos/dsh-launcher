@@ -1,22 +1,30 @@
+import SubmitButton from "../SubmitButton";
+
 export default function InstallActions({
   onClose,
   onRun,
   running,
-  label,
+  idleLabel,
+  busyLabel,
 }: {
   onClose: () => void;
   onRun: () => void;
   running: boolean;
-  label: string;
+  idleLabel: string;
+  busyLabel: string;
 }) {
   return (
     <div className="modal-actions">
       <button type="button" onClick={onClose} disabled={running}>
         {running ? "后台运行,可关闭" : "取消"}
       </button>
-      <button type="button" className="primary" onClick={onRun} disabled={running}>
-        {label}
-      </button>
+      <SubmitButton
+        className="primary"
+        busy={running}
+        label={idleLabel}
+        busyLabel={busyLabel}
+        onClick={onRun}
+      />
     </div>
   );
 }

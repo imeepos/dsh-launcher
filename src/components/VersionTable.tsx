@@ -1,14 +1,14 @@
 import type { VersionEntry } from "../api";
+import AsyncButton from "./AsyncButton";
 import KindBadge from "./KindBadge";
 
 type VersionRowProps = {
   version: VersionEntry;
-  busyId: string | null;
-  onFingerprint: (id: string) => void;
+  onFingerprint: (id: string) => Promise<void>;
   onDelete: (version: VersionEntry) => void;
 };
 
-function VersionRow({ version, busyId, onFingerprint, onDelete }: VersionRowProps) {
+function VersionRow({ version, onFingerprint, onDelete }: VersionRowProps) {
   return (
     <tr>
       <td>{version.id}</td>
@@ -20,12 +20,14 @@ function VersionRow({ version, busyId, onFingerprint, onDelete }: VersionRowProp
       <td className="mono">{version.fingerprint ?? "未采集"}</td>
       <td>
         <div className="row-actions">
-          <button
-            onClick={() => onFingerprint(version.id)}
-            disabled={busyId !== null}
-          >
-            {busyId === version.id ? "采集中…" : "指纹"}
-          </button>
+          <AsyncButton
+            task={() => onFingerprint(version.id)}
+            idle="指纹"
+            loading="采集中…"
+            success="已采集"
+            successToast={"已采集 " + version.id + " 指纹"}
+            failurePrefix="采集失败"
+          />
           <button className="danger" onClick={() => onDelete(version)}>
             删除
           </button>
@@ -37,13 +39,11 @@ function VersionRow({ version, busyId, onFingerprint, onDelete }: VersionRowProp
 
 export default function VersionTable({
   versions,
-  busyId,
   onFingerprint,
   onDelete,
 }: {
   versions: VersionEntry[];
-  busyId: string | null;
-  onFingerprint: (id: string) => void;
+  onFingerprint: (id: string) => Promise<void>;
   onDelete: (v: VersionEntry) => void;
 }) {
   return (
@@ -65,7 +65,7 @@ export default function VersionTable({
               <div className="empty-state">
                 <img src="/assets/dsh-empty-state.png" alt="" className="empty-state-art" />
                 <p className="empty-state-title">还没有任何 DSH 版本</p>
-                <p className="hint">点「安装新版本」从 npm 安装，或「手动添加」登记本地版本</p>
+                <p className="hint">点「安装新版本」从 npm 安装,或「手动添加」登记本地版本</p>
               </div>
             </td>
           </tr>
@@ -74,7 +74,6 @@ export default function VersionTable({
             <VersionRow
               key={version.id}
               version={version}
-              busyId={busyId}
               onFingerprint={onFingerprint}
               onDelete={onDelete}
             />

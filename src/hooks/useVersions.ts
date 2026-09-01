@@ -1,39 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import { fingerprintVersion, listVersions, type VersionEntry } from "../api";
+import { listVersions, type VersionEntry } from "../api";
+import { showFailure } from "./toastStore";
 
 // Owns the version list state shared by every dialog flow in App.
+// refresh() rethrows so callers (e.g. AsyncButton) can render their own failure feedback.
 function useVersions() {
   const [versions, setVersions] = useState<VersionEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    try {
-      setVersions(await listVersions());
-      setError(null);
-    } catch (e) {
-      setError(String(e));
-    }
+    setVersions(await listVersions());
   }, []);
 
+  // 首屏加载失败也走轻提醒。
   useEffect(() => {
-    void refresh();
+    refresh().catch((e) => showFailure("刷新失败", e));
   }, [refresh]);
 
-  async function doFingerprint(id: string) {
-    setBusyId(id);
-    setError(null);
-    try {
-      await fingerprintVersion(id);
-      await refresh();
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  return { versions, error, busyId, refresh, doFingerprint };
+  return { versions, refresh };
 }
 
 export default useVersions;

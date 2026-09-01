@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { removeVersion, type VersionEntry } from "../api";
+import { showSuccess } from "../hooks/toastStore";
+import SubmitButton from "./SubmitButton";
 
 export default function DeleteConfirmDialog({
   version,
@@ -18,6 +20,7 @@ export default function DeleteConfirmDialog({
     setErr(null);
     try {
       await removeVersion(version.id);
+      showSuccess("已删除版本 " + version.id);
       onDeleted();
       onClose();
     } catch (e) {
@@ -44,9 +47,13 @@ export default function DeleteConfirmDialog({
           <button type="button" onClick={onClose} disabled={busy}>
             取消
           </button>
-          <button type="button" className="danger" onClick={() => void confirm()} disabled={busy}>
-            {busy ? "删除中…" : "确认删除"}
-          </button>
+          <SubmitButton
+            className="danger"
+            busy={busy}
+            label="确认删除"
+            busyLabel="删除中…"
+            onClick={() => void confirm()}
+          />
         </div>
       </div>
     </div>

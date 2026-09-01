@@ -2,6 +2,7 @@
 //! 串行锁与原子落盘复用 commands::with_registry。
 
 use crate::commands::{peek_registry, with_registry};
+use crate::commands_heavy::run_blocking;
 use crate::homes::{
     clone_dir, default_homes_root, ensure_path_free, register_home, validate_existing_home_path,
 };
@@ -52,8 +53,17 @@ pub fn create_home(path: Option<String>, id: Option<String>) -> RegResult<HomeEn
 }
 
 /// 克隆 home:递归拷贝目录并登记为新 home,继承版本绑定。
+/// 目录拷贝可能很慢,经 spawn_blocking 后台执行,避免卡死界面。
 #[tauri::command]
-pub fn clone_home(
+pub async fn clone_home(
+    source_id: String,
+    new_path: Option<String>,
+    new_id: Option<String>,
+) -> RegResult<HomeEntry> {
+    run_blocking(move || clone_home_impl(source_id, new_path, new_id)).await
+}
+
+fn clone_home_impl(
     source_id: String,
     new_path: Option<String>,
     new_id: Option<String>,

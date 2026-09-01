@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { addManualVersion } from "../api";
+import useManualAdd from "../hooks/useManualAdd";
 import ManualAddFields from "./ManualAddFields";
+import SubmitButton from "./SubmitButton";
 
 export default function ManualAddDialog({
   onClose,
@@ -9,25 +9,10 @@ export default function ManualAddDialog({
   onClose: () => void;
   onAdded: () => void;
 }) {
-  const [bin, setBin] = useState("");
-  const [cwd, setCwd] = useState("");
-  const [id, setId] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function submit() {
-    setSubmitting(true);
-    setErr(null);
-    try {
-      await addManualVersion(bin, cwd.trim() ? cwd : null, id.trim() ? id : null);
-      onAdded();
-      onClose();
-    } catch (e) {
-      setErr(String(e));
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const { bin, cwd, id, err, submitting, setBin, setCwd, setId, submit } = useManualAdd(
+    onAdded,
+    onClose,
+  );
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
@@ -46,9 +31,14 @@ export default function ManualAddDialog({
           <button type="button" onClick={onClose} disabled={submitting}>
             取消
           </button>
-          <button type="submit" className="primary" disabled={submitting || !bin.trim()}>
-            {submitting ? "添加中…" : "添加"}
-          </button>
+          <SubmitButton
+            type="submit"
+            className="primary"
+            busy={submitting}
+            label="添加"
+            busyLabel="添加中…"
+            disabled={!bin.trim()}
+          />
         </div>
       </form>
     </div>
