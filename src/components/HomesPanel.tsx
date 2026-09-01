@@ -9,7 +9,7 @@ function HomesPanel({ versions }: { versions: VersionEntry[] }) {
   const [form, setForm] = useState<{ mode: HomeFormMode; source?: HomeEntry } | null>(null);
 
   return (
-    <section className="homes-panel">
+    <section className="pane">
       <header className="panel-header">
         <h2>Homes</h2>
         <div className="toolbar-actions">
@@ -20,6 +20,7 @@ function HomesPanel({ versions }: { versions: VersionEntry[] }) {
         </div>
       </header>
 
+      <div className="pane-body">
       {error && <p className="error">{error}</p>}
 
       <HomesTable
@@ -30,6 +31,7 @@ function HomesPanel({ versions }: { versions: VersionEntry[] }) {
         onClone={(h) => setForm({ mode: "clone", source: h })}
         onDelete={(homeId) => void execute(() => removeHome(homeId))}
       />
+      </div>
 
       {form && (
         <HomeFormDialog

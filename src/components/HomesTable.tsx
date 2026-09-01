@@ -18,14 +18,13 @@ function HomesTable({ homes, versions, busy, onBind, onClone, onDelete }: Props)
           <th>ID</th>
           <th>路径</th>
           <th>绑定版本</th>
-          <th>上次成功</th>
           <th>操作</th>
         </tr>
       </thead>
       <tbody>
         {homes.length === 0 ? (
           <tr>
-            <td colSpan={5} className="empty">
+            <td colSpan={4} className="empty">
               还没有 home,点「新建」或「登记」
             </td>
           </tr>

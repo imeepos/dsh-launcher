@@ -1,8 +1,8 @@
-button { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius-s); padding: 5px 12px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+button { background: var(--surface-row); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius-s); padding: 4px 10px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
 button:hover:not(:disabled) { background: var(--surface-raised-hover); }
 button:active:not(:disabled) { transform: translateY(1px); }
 button:disabled { opacity: 0.5; cursor: default; }
-button.primary { background: var(--accent); border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 button.primary:hover:not(:disabled) { background: var(--accent-hover); }
 button.danger { color: var(--danger); border-color: var(--danger-border); }
 button.danger:hover:not(:disabled) { background: var(--danger-bg); }
@@ -12,16 +12,16 @@ button.is-error { color: var(--danger); border-color: var(--danger-border); }
 .spinner { width: 11px; height: 11px; flex: none; border: 2px solid var(--spinner-track); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .state-icon { font-size: 12px; font-weight: 700; line-height: 1; }
-.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid; }
-.badge-npm { color: var(--accent-text); border-color: var(--accent-border); background: var(--accent-alpha); }
-.badge-dev { color: var(--success); border-color: var(--success-border); background: var(--success-alpha); }
-.badge-manual { color: var(--text-secondary); border-color: var(--border-strong); background: var(--neutral-alpha); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-strong); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.badge-npm { color: var(--accent-text); background: var(--accent-dim); }
+.badge-dev { color: var(--success); background: var(--success-alpha); }
+.badge-manual { color: var(--text-secondary); background: var(--neutral-alpha); }
 .kind-picker { display: flex; gap: 6px; }
 .kind-btn { flex: 1; padding: 7px 0; }
-.kind-btn.active { background: var(--accent); border-color: var(--accent); }
+.kind-btn.active { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent-text); }
 
 .theme-toggle { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-s); overflow: hidden; }
-.theme-toggle button { border: none; border-radius: 0; padding: 5px 10px; background: transparent; color: var(--text-faint); }
+.theme-toggle button { border: none; border-radius: 0; padding: 4px 9px; background: transparent; color: var(--text-muted); }
 .theme-toggle button + button { border-left: 1px solid var(--border-strong); }
 .theme-toggle button:hover:not(:disabled):not(.active) { background: var(--surface-raised-hover); color: var(--text); }
-.theme-toggle button.active { background: var(--accent); color: var(--on-accent); }
+.theme-toggle button.active { background: var(--accent-dim); color: var(--accent-text); }

@@ -12,7 +12,12 @@ interface Props {
 function HomeRow({ home, versions, busy, onBind, onClone, onDelete }: Props) {
   return (
     <tr>
-      <td>{home.id}</td>
+      <td>
+        <div className="cell-main">{home.id}</div>
+        {home.lastGoodVersionId && (
+          <div className="cell-sub mono">上次成功 {home.lastGoodVersionId}</div>
+        )}
+      </td>
       <td className="mono">{home.path}</td>
       <td>
         <select
@@ -29,7 +34,6 @@ function HomeRow({ home, versions, busy, onBind, onClone, onDelete }: Props) {
           ))}
         </select>
       </td>
-      <td className="mono">{home.lastGoodVersionId ?? "—"}</td>
       <td>
         <div className="row-actions">
           <button onClick={onClone} disabled={busy}>

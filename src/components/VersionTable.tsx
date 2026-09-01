@@ -11,13 +11,15 @@ type VersionRowProps = {
 function VersionRow({ version, onFingerprint, onDelete }: VersionRowProps) {
   return (
     <tr>
-      <td>{version.id}</td>
+      <td>
+        <div className="cell-main">{version.id}</div>
+        {version.cwd && <div className="cell-sub mono">{version.cwd}</div>}
+      </td>
       <td>
         <KindBadge kind={version.kind} />
       </td>
       <td className="mono">{version.spec ?? version.bin}</td>
-      <td className="mono">{version.cwd ?? "—"}</td>
-      <td className="mono">{version.fingerprint ?? "未采集"}</td>
+      <td className="mono">{version.fingerprint ?? "—"}</td>
       <td>
         <div className="row-actions">
           <AsyncButton
@@ -53,7 +55,6 @@ export default function VersionTable({
           <th>ID</th>
           <th>类型</th>
           <th>spec / bin</th>
-          <th>cwd</th>
           <th>指纹</th>
           <th>操作</th>
         </tr>
@@ -61,7 +62,7 @@ export default function VersionTable({
       <tbody>
         {versions.length === 0 ? (
           <tr>
-            <td colSpan={6} className="empty-cell">
+            <td colSpan={5} className="empty-cell">
               <div className="empty-state">
                 <img src="/assets/dsh-empty-state.png" alt="" className="empty-state-art" />
                 <p className="empty-state-title">还没有任何 DSH 版本</p>

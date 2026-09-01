@@ -10,10 +10,19 @@ interface Props {
 
 function ProfileRow({ info, isRunning, busy, onStart, onStop }: Props) {
   return (
-    <tr>
-      <td className="mono">{info.name}</td>
+    <tr className={isRunning ? "is-running" : ""}>
+      <td className="mono cell-main">{info.name}</td>
       <td>{info.bundleCount}</td>
-      <td>{isRunning ? "运行中" : "已停止"}</td>
+      <td>
+        <span className="status-cell">
+          <span
+            className={"status-dot " + (isRunning ? "dot-running" : "dot-stopped")}
+          />
+          <span className={isRunning ? "status-running" : "status-stopped"}>
+            {isRunning ? "运行中" : "已停止"}
+          </span>
+        </span>
+      </td>
       <td>
         {isRunning ? (
           <button className="danger" onClick={() => onStop(info)} disabled={busy}>

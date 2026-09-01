@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "dsh-launcher",
-        "width": 800,
-        "height": 600
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1024,
+        "minHeight": 640
       }
     ],
     "security": {
