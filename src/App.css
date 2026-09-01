@@ -1,0 +1,159 @@
+:root {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #16181d;
+  color: #e4e6eb;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.toolbar h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  background: #2a2d34;
+  color: #e4e6eb;
+  border: 1px solid #3a3d45;
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+button:hover:not(:disabled) {
+  background: #34373f;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #1d4fd8;
+}
+
+.version-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.version-table th,
+.version-table td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid #2a2d34;
+  vertical-align: top;
+}
+
+.version-table th {
+  color: #9aa0aa;
+  font-weight: 600;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.empty {
+  text-align: center;
+  color: #9aa0aa;
+  padding: 24px 0;
+}
+
+.error {
+  color: #f87171;
+  background: #2d1a1c;
+  border: 1px solid #57262a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal {
+  background: #1e2027;
+  border: 1px solid #3a3d45;
+  border-radius: 10px;
+  padding: 18px 20px;
+  width: 460px;
+  max-width: calc(100vw - 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #b8bcc6;
+}
+
+.modal input {
+  background: #16181d;
+  border: 1px solid #3a3d45;
+  border-radius: 6px;
+  color: #e4e6eb;
+  padding: 7px 9px;
+  font-size: 13px;
+}
+
+.modal input:focus {
+  outline: 1px solid #2563eb;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
