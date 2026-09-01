@@ -86,4 +86,41 @@ pub struct Registry {
     /// O1 起启用:萌新首跑设置
     #[serde(default)]
     pub settings: Settings,
+    /// O2 起启用:首跑向导断点状态
+    #[serde(default)]
+    pub onboarding: OnboardingState,
+}
+
+/// 首跑向导步骤:welcome → check → fix* → mode → install → home → launch → done。
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OnboardingStep {
+    #[default]
+    Welcome,
+    Check,
+    Fix,
+    Mode,
+    Install,
+    Home,
+    Launch,
+    Done,
+}
+
+/// 首跑断点状态;老文件缺省 = 未开始向导。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingState {
+    #[serde(default)]
+    pub step: OnboardingStep,
+    #[serde(default)]
+    pub completed: bool,
+}
+
+impl Default for OnboardingState {
+    fn default() -> Self {
+        Self {
+            step: OnboardingStep::Welcome,
+            completed: false,
+        }
+    }
 }
