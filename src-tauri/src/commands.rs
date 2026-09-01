@@ -9,12 +9,12 @@ use crate::registry::{self, RegResult, Registry, VersionEntry, VersionKind};
 use std::sync::{Mutex, OnceLock};
 use tauri::Emitter;
 
-fn registry_io_lock() -> &'static Mutex<()> {
+pub(crate) fn registry_io_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
 }
 
-fn with_registry<T>(f: impl FnOnce(&mut Registry) -> RegResult<T>) -> RegResult<T> {
+pub(crate) fn with_registry<T>(f: impl FnOnce(&mut Registry) -> RegResult<T>) -> RegResult<T> {
     let _guard = registry_io_lock().lock().map_err(|e| e.to_string())?;
     let path = registry::default_registry_path();
     let mut reg = registry::load(&path)?;
@@ -23,7 +23,7 @@ fn with_registry<T>(f: impl FnOnce(&mut Registry) -> RegResult<T>) -> RegResult<
     Ok(out)
 }
 
-fn peek_registry() -> RegResult<Registry> {
+pub(crate) fn peek_registry() -> RegResult<Registry> {
     let _guard = registry_io_lock().lock().map_err(|e| e.to_string())?;
     registry::load(&registry::default_registry_path())
 }
