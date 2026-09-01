@@ -96,3 +96,55 @@ export function onInstallProgress(
     handler(event.payload),
   );
 }
+
+export interface ProfileInfo {
+  name: string;
+  bundleCount: number;
+}
+
+export interface ProcessLogPayload {
+  homeId: string;
+  profile: string;
+  line: string;
+  isErr: boolean;
+}
+
+export interface ProcessExitPayload {
+  homeId: string;
+  profile: string;
+  exitCode?: number | null;
+}
+
+export function listProfiles(homePath: string): Promise<ProfileInfo[]> {
+  return invoke("list_profiles", { homePath });
+}
+
+export function startProfile(
+  homeId: string,
+  profile: string,
+  patch: string | null,
+  args: string[] | null,
+  cwd: string | null,
+): Promise<void> {
+  return invoke("start_profile", { homeId, profile, patch, args, cwd });
+}
+
+export function stopProfile(homeId: string, profile: string): Promise<void> {
+  return invoke("stop_profile", { homeId, profile });
+}
+
+export function listRunning(): Promise<string[]> {
+  return invoke("list_running");
+}
+
+export function onProcessLog(
+  handler: (p: ProcessLogPayload) => void,
+): Promise<UnlistenFn> {
+  return listen<ProcessLogPayload>("process-log", (event) => handler(event.payload));
+}
+
+export function onProcessExit(
+  handler: (p: ProcessExitPayload) => void,
+): Promise<UnlistenFn> {
+  return listen<ProcessExitPayload>("process-exit", (event) => handler(event.payload));
+}

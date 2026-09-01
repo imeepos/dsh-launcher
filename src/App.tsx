@@ -5,6 +5,7 @@ import ManualAddDialog from "./components/ManualAddDialog";
 import InstallDialog from "./components/InstallDialog";
 import DeleteConfirmDialog from "./components/DeleteConfirmDialog";
 import HomesPanel from "./components/HomesPanel";
+import ProcessPanel from "./components/ProcessPanel";
 import VersionTable from "./components/VersionTable";
 import Toolbar from "./components/Toolbar";
 import useVersions from "./hooks/useVersions";
@@ -30,6 +31,7 @@ function App() {
         onDelete={setDeleteTarget}
       />
       <HomesPanel versions={versions} />
+      <ProcessPanel />
       {manualOpen && (
         <ManualAddDialog onClose={() => setManualOpen(false)} onAdded={() => void refresh()} />
       )}
