@@ -5,6 +5,7 @@ pub mod commands_envcheck;
 pub mod commands_heavy;
 pub mod commands_homes;
 pub mod commands_processes;
+pub mod commands_runtime;
 pub mod envcheck;
 pub mod envcheck_probe;
 pub mod envcheck_sys;
@@ -12,6 +13,8 @@ pub mod homes;
 pub mod launcher;
 pub mod launcher_process;
 pub mod registry;
+pub mod runtime_install;
+pub mod runtime_install_core;
 
 #[cfg(test)]
 #[path = "envcheck_tests.rs"]
@@ -20,6 +23,10 @@ mod envcheck_tests;
 #[cfg(test)]
 #[path = "launcher_process_tests.rs"]
 mod launcher_process_tests;
+
+#[cfg(test)]
+#[path = "runtime_install_tests.rs"]
+mod runtime_install_tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -45,6 +52,8 @@ pub fn run() {
             commands_envcheck::env_check,
             commands_envcheck::env_check_fast,
             commands_envcheck::env_snapshot,
+            commands_runtime::install_runtime,
+            commands_runtime::runtime_info,
         ])
         .manage(commands_processes::ProcessMap::default())
         .run(tauri::generate_context!())
