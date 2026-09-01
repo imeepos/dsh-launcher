@@ -18,3 +18,4 @@ pub use launcher_npm::{
     install_npm, install_npm_into, remove_version_dir, resolve_npm, validate_dev_repo,
 };
 pub use launcher_runtime::{expand_tilde, home_dir, DEV_BIN};
+pub(crate) use launcher_runtime::{make_group_leader, strip_dsh_env};

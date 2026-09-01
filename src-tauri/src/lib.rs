@@ -2,9 +2,15 @@
 
 pub mod commands;
 pub mod commands_homes;
+pub mod commands_processes;
 pub mod homes;
 pub mod launcher;
+pub mod launcher_process;
 pub mod registry;
+
+#[cfg(test)]
+#[path = "launcher_process_tests.rs"]
+mod launcher_process_tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -23,7 +29,12 @@ pub fn run() {
             commands_homes::clone_home,
             commands_homes::bind_home_version,
             commands_homes::remove_home,
+            commands_processes::list_profiles,
+            commands_processes::start_profile,
+            commands_processes::stop_profile,
+            commands_processes::list_running,
         ])
+        .manage(commands_processes::ProcessMap::default())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
