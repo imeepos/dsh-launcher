@@ -54,6 +54,41 @@ export function removeVersion(id: string): Promise<void> {
   return invoke("remove_version", { id });
 }
 
+export interface HomeEntry {
+  id: string;
+  path: string;
+  boundVersionId?: string | null;
+  lastGoodVersionId?: string | null;
+}
+
+export function listHomes(): Promise<HomeEntry[]> {
+  return invoke("list_homes");
+}
+
+export function addHome(path: string, id: string | null): Promise<HomeEntry> {
+  return invoke("add_home", { path, id });
+}
+
+export function createHome(path: string | null, id: string | null): Promise<HomeEntry> {
+  return invoke("create_home", { path, id });
+}
+
+export function cloneHome(
+  sourceId: string,
+  newPath: string | null,
+  newId: string | null,
+): Promise<HomeEntry> {
+  return invoke("clone_home", { sourceId, newPath, newId });
+}
+
+export function bindHomeVersion(homeId: string, versionId: string | null): Promise<HomeEntry> {
+  return invoke("bind_home_version", { homeId, versionId });
+}
+
+export function removeHome(homeId: string): Promise<void> {
+  return invoke("remove_home", { homeId });
+}
+
 export function onInstallProgress(
   handler: (p: InstallProgressPayload) => void,
 ): Promise<UnlistenFn> {

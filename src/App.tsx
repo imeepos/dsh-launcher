@@ -4,6 +4,7 @@ import "./App.css";
 import ManualAddDialog from "./components/ManualAddDialog";
 import InstallDialog from "./components/InstallDialog";
 import DeleteConfirmDialog from "./components/DeleteConfirmDialog";
+import HomesPanel from "./components/HomesPanel";
 import VersionTable from "./components/VersionTable";
 import Toolbar from "./components/Toolbar";
 import useVersions from "./hooks/useVersions";
@@ -28,6 +29,7 @@ function App() {
         onFingerprint={(id) => void doFingerprint(id)}
         onDelete={setDeleteTarget}
       />
+      <HomesPanel versions={versions} />
       {manualOpen && (
         <ManualAddDialog onClose={() => setManualOpen(false)} onAdded={() => void refresh()} />
       )}
