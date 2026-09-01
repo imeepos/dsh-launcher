@@ -19,8 +19,8 @@ fn smoke_dev_repo_fingerprint() {
 fn smoke_npm_install_and_fingerprint() {
     let spec = "@deepseek-ai/dsh@0.1.1-rc.2";
     let id = "smoke-v0.1.1-rc.2";
-    let bin = launcher::install_npm(spec, id, |line| println!("[npm] {line}"))
-        .expect("npm 安装失败");
+    let bin =
+        launcher::install_npm(spec, id, |line| println!("[npm] {line}")).expect("npm 安装失败");
     println!("bin = {}", bin.display());
     assert!(bin.is_file(), "node_modules/.bin/dsh 应存在");
     let fp = launcher::fingerprint(&bin.to_string_lossy(), None).expect("npm 指纹采集失败");
