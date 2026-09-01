@@ -2,6 +2,8 @@
 
 Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、多 profile。
 
+> 全新系统（萌新）首跑、环境检查与自愈设计见 DESIGN-ONBOARDING.md。
+
 ## dsh 语义基准（设计依据，勿凭感觉改）
 
 1. **Home 解析优先级**（`resolveDshHome()`）：显式配置 > `$DSH_HOME` 环境变量 > `~/.dsh`；空白值视为未设置；支持 `~` 展开。Launcher 启动 dsh 时必须清掉环境里游离的 `DSH_*` 后显式设置 `DSH_HOME`，独占其来源。
@@ -39,6 +41,7 @@ Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、�
 - dev 版本：登记 repo checkout，启动命令 `pnpm dsh`，cwd=repoPath。
 - home 只登记路径不搬家；删除 npm 版本连目录一起删，dev 只摘登记。
 - manual 版本（M0 add_manual_version）：登记既有可执行文件，用户指定 bin 与可选 cwd；删除语义同 dev，只摘登记不动文件。
+- 萌新首跑新增 runtime / settings / onboarding 字段与修复动作，字段定义见 DESIGN-ONBOARDING.md §6。
 
 ## 里程碑
 
@@ -50,6 +53,9 @@ Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、�
 | M3 | profile 发现 + 启动/停止 + 日志流 + 运行锁 | SIGTERM 停止 exit 0；二次启动被锁拒绝 |
 | M4 | dump 查看器 + 失败诊断（自动 dump-default 对比） | 坏 patch 时 UI 标出坏行 |
 | M5 | patch 编辑器 + `dsh plugin` 转发 | live profile 改 patch 热生效 |
+| O1 | 环境检查 + 自带 Node 运行时（双源下载/校验/换源） | 无 node 容器内装好运行时并落盘 runtime.json |
+| O2 | 首跑向导全流程（断点续跑）+ 首启健康判定 | 删 ~/.dsh-launcher 后裸装一路默认走到成功徽章 |
+| O3 | 修复中心（预检卡片复用修复动作）+ 镜像设置 | 删 runtime、断网场景主界面出卡片且一键修复 |
 
 ## UI 结构
 
