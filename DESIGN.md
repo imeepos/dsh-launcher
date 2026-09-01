@@ -19,7 +19,7 @@ Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、�
 {
   "versions": [{
     "id": "v0.1.1-rc.2",
-    "kind": "npm",                // npm | dev
+    "kind": "npm",                // npm | dev | manual(manual=手动指定 bin/cwd 登记)
     "spec": "@deepseek-ai/dsh@0.1.1-rc.2",
     "bin": "~/.dsh-launcher/versions/v0.1.1-rc.2/node_modules/.bin/dsh",
     "cwd": null,                  // dev kind 为 repoPath
@@ -38,6 +38,7 @@ Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、�
 - npm 版本安装：`npm install --prefix ~/.dsh-launcher/versions/<id> @deepseek-ai/dsh@<ver>`（公网已确认可用），每版本独立依赖树。
 - dev 版本：登记 repo checkout，启动命令 `pnpm dsh`，cwd=repoPath。
 - home 只登记路径不搬家；删除 npm 版本连目录一起删，dev 只摘登记。
+- manual 版本（M0 add_manual_version）：登记既有可执行文件，用户指定 bin 与可选 cwd；删除语义同 dev，只摘登记不动文件。
 
 ## 里程碑
 
