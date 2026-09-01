@@ -1,12 +1,13 @@
+//! 子进程运行时:管道读取、流式输出收集与超时控制。
+
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::sync::mpsc;
+use std::process::Command;
+use std::sync::mpsc::{self, Receiver};
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use crate::registry::RegResult;
-
-const FINGERPRINT_TIMEOUT: Duration = Duration::from_secs(120);
+pub(crate) const FINGERPRINT_TIMEOUT: Duration = Duration::from_secs(120);
 pub(crate) const INSTALL_TIMEOUT: Duration = Duration::from_secs(600);
 
 /// dev 版本的启动命令(DESIGN.md:登记 repo checkout,启动命令 pnpm dsh)
@@ -36,73 +37,41 @@ pub(crate) fn strip_dsh_env(cmd: &mut Command) {
     }
 }
 
-fn build_version_command(bin: &str) -> RegResult<Command> {
-    Ok(if bin.split_whitespace().count() > 1 {
-        let mut c = Command::new("sh");
-        c.arg("-c").arg(format!("{bin} --version"));
-        c
-    } else {
-        let path = expand_tilde(bin);
-        // 显式路径必须存在;裸命令名(如 "dsh")交由 PATH 解析
-        if bin.contains('/') && !path.is_file() {
-            return Err(format!("bin 不存在: {}", path.display()));
-        }
-        let target = if bin.contains('/') {
-            path
-        } else {
-            PathBuf::from(bin)
-        };
-        let mut c = Command::new(target);
-        c.arg("--version");
-        c
-    })
-}
-/// 运行 <bin> --version,stdout 首个非空行 trim 后作为指纹。
-/// Err 情形:bin/cwd 不存在、启动失败、超时、非零退出、无 stdout 输出。
-pub fn fingerprint(bin: &str, cwd: Option<&str>) -> RegResult<String> {
-    let mut cmd = build_version_command(bin)?;
-    if let Some(cwd) = cwd {
-        let dir = expand_tilde(cwd);
-        if !dir.is_dir() {
-            return Err(format!("cwd 不存在: {}", dir.display()));
-        }
-        cmd.current_dir(dir);
+/// 子进程以自身为进程组长启动,超时可整组击杀(否则 sh 的孙进程会存活并占住管道)。
+pub(crate) fn make_group_leader(cmd: &mut Command) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
     }
-    strip_dsh_env(&mut cmd);
-    cmd.stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    #[cfg(not(unix))]
+    {
+        let _ = cmd;
+    }
+}
 
-    let mut child = cmd.spawn().map_err(|e| format!("无法启动 {bin:?}: {e}"))?;
-    let (stdout_buf, stderr_buf, status) = wait_with_output_lines(&mut child, FINGERPRINT_TIMEOUT)?;
-    let status = status.ok_or_else(|| "采集指纹超时,进程已终止".to_string())?;
-    if !status.success() {
-        let tail = tail_lines(&stderr_buf, 5);
-        return Err(format!("{bin} --version 退出码 {status};stderr: {tail}"));
+/// 杀掉子进程所在的整个进程组(需配合 make_group_leader),失败时退回单杀。
+pub(crate) fn kill_process_group(child: &mut std::process::Child) {
+    #[cfg(unix)]
+    {
+        let pid = child.id() as i32;
+        let killed = unsafe { libc::kill(-pid, libc::SIGKILL) };
+        if killed != 0 {
+            let _ = child.kill();
+        }
     }
-    let fp = stdout_buf
-        .lines()
-        .map(str::trim)
-        .find(|l| !l.is_empty())
-        .unwrap_or("")
-        .to_string();
-    if fp.is_empty() {
-        return Err(format!(
-            "{bin} --version 无输出;stderr: {}",
-            stderr_buf.trim()
-        ));
+    #[cfg(not(unix))]
+    {
+        let _ = child.kill();
     }
-    Ok(fp)
 }
-/// 流式执行子进程:stdout/stderr 逐行进缓冲;返回 (stdout, stderr, Option<status>)。
-/// status 为 None 表示超时被 kill。
-pub(crate) fn wait_with_output_lines(
-    child: &mut std::process::Child,
-    timeout: Duration,
-) -> RegResult<(String, String, Option<std::process::ExitStatus>)> {
+
+type LineRx = Receiver<(bool, String)>;
+
+fn spawn_pipe_readers(child: &mut std::process::Child) -> (LineRx, JoinHandle<()>, JoinHandle<()>) {
     let out_pipe = child.stdout.take().expect("stdout 已 pipe");
     let err_pipe = child.stderr.take().expect("stderr 已 pipe");
-    let (tx, rx) = mpsc::channel::<(bool, String)>(); // (is_stderr, line)
+    let (tx, rx) = mpsc::channel::<(bool, String)>();
     let t_out = {
         let tx = tx.clone();
         std::thread::spawn(move || {
@@ -116,22 +85,50 @@ pub(crate) fn wait_with_output_lines(
             let _ = tx.send((true, line));
         }
     });
+    (rx, t_out, t_err)
+}
 
+fn push_line(
+    stdout_buf: &mut String,
+    stderr_buf: &mut String,
+    is_err: bool,
+    line: &str,
+    on_line: &mut dyn FnMut(bool, &str),
+) {
+    if is_err {
+        stderr_buf.push_str(line);
+        stderr_buf.push('\n');
+    } else {
+        stdout_buf.push_str(line);
+        stdout_buf.push('\n');
+    }
+    on_line(is_err, line);
+}
+
+type Collected = (String, String, Option<std::process::ExitStatus>, bool);
+
+fn collect_until_exit(
+    rx: &LineRx,
+    child: &mut std::process::Child,
+    deadline: Instant,
+    mut on_line: impl FnMut(bool, &str),
+    keepalive: Option<(Duration, &str)>,
+) -> Collected {
     let mut stdout_buf = String::new();
     let mut stderr_buf = String::new();
-    let deadline = Instant::now() + timeout;
     let mut status: Option<std::process::ExitStatus> = None;
     let mut timed_out = false;
+    let mut last_keepalive = Instant::now();
     loop {
         match rx.recv_timeout(Duration::from_millis(100)) {
-            Ok((false, line)) => {
-                stdout_buf.push_str(&line);
-                stdout_buf.push('\n');
-                continue;
-            }
-            Ok((true, line)) => {
-                stderr_buf.push_str(&line);
-                stderr_buf.push('\n');
+            Ok((is_err, line)) => {
+                push_line(
+                    &mut stdout_buf,
+                    &mut stderr_buf,
+                    is_err,
+                    &line,
+                    &mut on_line,
+                );
                 continue;
             }
             Err(mpsc::RecvTimeoutError::Timeout) => {}
@@ -140,25 +137,46 @@ pub(crate) fn wait_with_output_lines(
         if let Ok(Some(s)) = child.try_wait() {
             status = Some(s);
             while let Ok((is_err, line)) = rx.try_recv() {
-                if is_err {
-                    stderr_buf.push_str(&line);
-                    stderr_buf.push('\n');
-                } else {
-                    stdout_buf.push_str(&line);
-                    stdout_buf.push('\n');
-                }
+                push_line(
+                    &mut stdout_buf,
+                    &mut stderr_buf,
+                    is_err,
+                    &line,
+                    &mut on_line,
+                );
             }
             break;
         }
+        if let Some((interval, msg)) = keepalive {
+            if last_keepalive.elapsed() >= interval {
+                last_keepalive = Instant::now();
+                on_line(false, msg);
+            }
+        }
         if Instant::now() > deadline {
-            let _ = child.kill();
+            kill_process_group(child);
             timed_out = true;
             break;
         }
     }
+    (stdout_buf, stderr_buf, status, timed_out)
+}
+
+/// 流式执行子进程:stdout/stderr 逐行喂给 on_line(is_err, line)。
+/// 返回 (stdout, stderr, Option<status>);status 为 None 表示超时被 kill。
+/// 正常退出路径:管道关闭 → Disconnected → break,补 wait 采集退出码。
+pub(crate) fn wait_with_output_lines(
+    child: &mut std::process::Child,
+    timeout: Duration,
+    on_line: impl FnMut(bool, &str),
+    keepalive: Option<(Duration, &str)>,
+) -> crate::registry::RegResult<(String, String, Option<std::process::ExitStatus>)> {
+    let (rx, t_out, t_err) = spawn_pipe_readers(child);
+    let deadline = Instant::now() + timeout;
+    let (stdout_buf, stderr_buf, status, timed_out) =
+        collect_until_exit(&rx, child, deadline, on_line, keepalive);
     let _ = t_out.join();
     let _ = t_err.join();
-    // 正常退出路径:管道关闭 → Disconnected → break,status 还没采集,这里补 wait。
     let status = if timed_out {
         let _ = child.wait();
         None
