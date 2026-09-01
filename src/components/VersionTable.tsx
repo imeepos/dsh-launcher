@@ -27,8 +27,12 @@ export default function VersionTable({
       <tbody>
         {versions.length === 0 ? (
           <tr>
-            <td colSpan={6} className="empty">
-              还没有版本,点「安装新版本」或「手动添加」
+            <td colSpan={6} className="empty-cell">
+              <div className="empty-state">
+                <img src="/assets/dsh-empty-state.png" alt="" className="empty-state-art" />
+                <p className="empty-state-title">还没有任何 DSH 版本</p>
+                <p className="hint">点「安装新版本」从 npm 安装，或「手动添加」登记本地版本</p>
+              </div>
             </td>
           </tr>
         ) : (
