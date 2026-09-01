@@ -1,29 +1,25 @@
 :root {
   font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-  color-scheme: dark;
 }
 
-body {
-  margin: 0;
-  background: #16181d;
-  color: #e4e6eb;
-}
-
+body { margin: 0; background: var(--bg); color: var(--text); }
 .container { max-width: 1040px; margin: 0 auto; padding: 16px 20px 40px; }
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-icon { width: 22px; height: 22px; border-radius: var(--radius-s); display: block; }
 .toolbar h1 { font-size: 18px; margin: 0; }
-.toolbar-actions { display: flex; gap: 8px; }
+.toolbar-actions { display: flex; gap: 8px; align-items: center; }
 
 .version-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .version-table th,
-.version-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #2a2d34; vertical-align: top; }
-.version-table th { color: #9aa0aa; font-weight: 600; }
+.version-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.version-table th { color: var(--text-faint); font-weight: 600; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
 .row-actions { display: flex; gap: 6px; }
-.empty { text-align: center; color: #9aa0aa; padding: 24px 0; }
+.empty { text-align: center; color: var(--text-faint); padding: 24px 0; }
 .empty-cell { text-align: center; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 0; }
-.empty-state-art { width: 220px; height: 220px; object-fit: cover; border-radius: 16px; opacity: 0.9; }
-.empty-state-title { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #c9cdd6; }
-.error { color: #f87171; background: #2d1a1c; border: 1px solid #57262a; border-radius: 6px; padding: 8px 12px; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
-.hint { margin: 0; font-size: 12px; color: #9aa0aa; }
+.empty-state-art { width: 220px; height: 220px; object-fit: cover; border-radius: var(--radius-xl); opacity: 0.9; }
+.empty-state-title { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+.error { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-s); padding: 8px 12px; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+.hint { margin: 0; font-size: 12px; color: var(--text-faint); }

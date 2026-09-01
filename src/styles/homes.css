@@ -9,14 +9,14 @@
 .panel-header h2 {
   font-size: 15px;
   margin: 0;
-  color: #c9cdd6;
+  color: var(--text-secondary);
 }
 
 .bind-select {
-  background: #16181d;
-  color: #e4e6eb;
-  border: 1px solid #3a3d45;
-  border-radius: 6px;
+  background: var(--inset);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
   padding: 4px 6px;
   font-size: 12px;
   max-width: 180px;

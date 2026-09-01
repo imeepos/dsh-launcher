@@ -1,0 +1,76 @@
+/* 语义 token:组件样式只允许引用 var(--*),禁止硬编码颜色。
+   :root 即 dark 默认;[data-theme="light"] 整块覆盖。 */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #16181d;
+  --surface: #1e2027;
+  --surface-raised: #2a2d34;
+  --surface-raised-hover: #34373f;
+  --inset: #16181d;
+  --deep: #0d0f12;
+  --border: #2a2d34;
+  --border-strong: #3a3d45;
+  --text: #e4e6eb;
+  --text-secondary: #c9cdd6;
+  --text-muted: #b8bcc6;
+  --text-faint: #9aa0aa;
+  --accent: #2563eb;
+  --accent-hover: #1d4fd8;
+  --accent-border: #1d4fd8;
+  --accent-text: #7ab8ff;
+  --accent-alpha: rgba(37, 99, 235, 0.15);
+  --success: #6ee7a0;
+  --success-border: #1d7a4c;
+  --success-bg: #12271c;
+  --success-alpha: rgba(34, 197, 94, 0.12);
+  --danger: #f87171;
+  --danger-border: #57262a;
+  --danger-bg: #2d1a1c;
+  --neutral-alpha: rgba(148, 156, 170, 0.12);
+  --on-accent: #ffffff;
+  --overlay: rgba(0, 0, 0, 0.55);
+  --spinner-track: rgba(228, 230, 235, 0.25);
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 10px;
+  --radius-xl: 16px;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-raised-hover: #eef0f4;
+  --inset: #ffffff;
+  --deep: #f7f8fa;
+  --border: #dfe2e8;
+  --border-strong: #c9ced8;
+  --text: #22262e;
+  --text-secondary: #3f4552;
+  --text-muted: #575e6b;
+  --text-faint: #6e7684;
+  --accent: #2563eb;
+  --accent-hover: #1d4fd8;
+  --accent-border: #1d4fd8;
+  --accent-text: #1d4fd8;
+  --accent-alpha: rgba(37, 99, 235, 0.1);
+  --success: #15803d;
+  --success-border: #b5e2c8;
+  --success-bg: #e7f7ee;
+  --success-alpha: rgba(34, 197, 94, 0.12);
+  --danger: #dc2626;
+  --danger-border: #f3c1c1;
+  --danger-bg: #fdecec;
+  --neutral-alpha: rgba(100, 116, 139, 0.12);
+  --on-accent: #ffffff;
+  --overlay: rgba(15, 18, 26, 0.35);
+  --spinner-track: rgba(42, 47, 58, 0.2);
+  --shadow: 0 6px 20px rgba(15, 18, 26, 0.12);
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 10px;
+  --radius-xl: 16px;
+}

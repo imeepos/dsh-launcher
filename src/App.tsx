@@ -4,11 +4,11 @@ import "./App.css";
 import ManualAddDialog from "./components/ManualAddDialog";
 import InstallDialog from "./components/InstallDialog";
 import DeleteConfirmDialog from "./components/DeleteConfirmDialog";
+import AppShell from "./components/AppShell";
 import HomesPanel from "./components/HomesPanel";
 import ProcessPanel from "./components/ProcessPanel";
 import VersionTable from "./components/VersionTable";
 import Toolbar from "./components/Toolbar";
-import ToastHost from "./components/ToastHost";
 import useVersions from "./hooks/useVersions";
 import { showFailure } from "./hooks/toastStore";
 
@@ -31,7 +31,7 @@ function App() {
   );
 
   return (
-    <main className="container">
+    <AppShell>
       <Toolbar
         onRefresh={refresh}
         onManualAdd={() => setManualOpen(true)}
@@ -53,8 +53,7 @@ function App() {
           onDeleted={refreshAfterAction}
         />
       )}
-      <ToastHost />
-    </main>
+    </AppShell>
   );
 }
 

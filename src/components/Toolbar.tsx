@@ -1,4 +1,5 @@
 import AsyncButton from "./AsyncButton";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Toolbar({
   onRefresh,
@@ -11,8 +12,12 @@ export default function Toolbar({
 }) {
   return (
     <header className="toolbar">
-      <h1>dsh-launcher</h1>
+      <div className="brand">
+        <img src="/assets/dsh-launcher-icon.png" alt="" className="brand-icon" />
+        <h1>dsh-launcher</h1>
+      </div>
       <div className="toolbar-actions">
+        <ThemeToggle />
         {/* 点击 -> 刷新中… -> 已刷新(短暂) -> 刷新;失败:✕ + 轻提醒 */}
         <AsyncButton
           task={onRefresh}
