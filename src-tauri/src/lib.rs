@@ -1,8 +1,8 @@
 //! dsh-launcher lib:注册表、进程操作与 Tauri 命令装配。
 
-mod commands;
-mod launcher;
-mod registry;
+pub mod commands;
+pub mod launcher;
+pub mod registry;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,6 +12,9 @@ pub fn run() {
             commands::list_versions,
             commands::add_manual_version,
             commands::fingerprint_version,
+            commands::install_npm_version,
+            commands::add_dev_version,
+            commands::remove_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

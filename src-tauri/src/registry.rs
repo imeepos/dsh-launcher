@@ -138,6 +138,20 @@ pub fn validate_id(id: &str) -> RegResult<()> {
     Ok(())
 }
 
+/// 从任意字符串(如目录名)生成 id 安全片段:非法字符折叠为 '-',小写化。
+pub fn sanitize_id_fragment(s: &str) -> String {
+    let mut out = String::new();
+    for c in s.chars() {
+        if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_' | '+') {
+            out.push(c);
+        } else if !out.ends_with('-') && !out.is_empty() {
+            out.push('-');
+        }
+    }
+    let t = out.trim_matches('-').to_lowercase();
+    if t.is_empty() { "x".into() } else { t }
+}
+
 pub fn now_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -304,6 +318,13 @@ mod tests {
         assert_eq!(reg.fresh_id("dev-x"), "dev-x");
         reg.upsert_version(sample("dev-x", VersionKind::Dev)).unwrap();
         assert_eq!(reg.fresh_id("dev-x"), "dev-x-2");
+    }
+
+    #[test]
+    fn sanitize_id_fragment_folds_illegal_chars() {
+        assert_eq!(sanitize_id_fragment("deepseek-harness"), "deepseek-harness");
+        assert_eq!(sanitize_id_fragment("My Repo/v2"), "my-repo-v2");
+        assert_eq!(sanitize_id_fragment("   "), "x");
     }
 
     #[test]

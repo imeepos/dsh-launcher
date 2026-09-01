@@ -7,6 +7,7 @@ Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、�
 1. **Home 解析优先级**（`resolveDshHome()`）：显式配置 > `$DSH_HOME` 环境变量 > `~/.dsh`；空白值视为未设置；支持 `~` 展开。Launcher 启动 dsh 时必须清掉环境里游离的 `DSH_*` 后显式设置 `DSH_HOME`，独占其来源。
 2. **bundle 双锚点解析**：bundle 名先从**运行中的 dsh 安装**解析（模板 bundle 如 `dsh-base` 永远来自运行版本），再从 profile 目录解析（`dsh plugin add` 的自装插件在 profile 自己的 node_modules）。因此同一 home 被不同版本启动行为不同——**home 绑定版本是一等公民**，跨版本启动须警告。
 3. **启动命令**：`env -u DSH_HOME DSH_HOME=<home> <bin> --profile <name> [--patch a.yml] -- <args>`。停止用 **SIGTERM**（dsh 约定 exit 0）；SIGINT 是用户中断（130），不要拿它当"停止"。
+4. **工作区 = 进程 cwd**：各表面 Agent 的 `meta.cwd` 取 `process.cwd()`，CLI 没有 `--cwd` 参数（headless 命令行只有 task 位置参数和 --help）。Launcher 每次启动提供工作区选择，spawn 时设 `cwd` 即可；后续编号顺延。
 4. **home 内部结构归 dsh 管**：`profiles/<name>/`（含 `package.json` 的 `dsh.profile.bundles` 清单与 `patchReload`、用户层 `cordis.patch.yml`）+ home 层 `cordis.patch.yml`。根 `cordis.yml` 由 dsh 每次启动重写为空列表，**UI 不提供编辑入口**。
 5. **无启动诊断**：`--dump-config`（全组合，不执行 `!!js`）与 `--dump-default-config`（跳过用户层，坏 patch 时的恢复诊断）。
 6. **每个 (home, profile) 单实例**：并发会撞 SQLite 与端口，launcher 侧加运行锁。
