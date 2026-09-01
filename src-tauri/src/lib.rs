@@ -64,6 +64,7 @@ pub fn run() {
             commands_onboarding::onboarding_advance,
             commands_onboarding::onboarding_complete,
             commands_onboarding::repair_runtime,
+            commands_runtime::npm_latest_version,
         ])
         .manage(commands_processes::ProcessMap::default())
         .run(tauri::generate_context!())
