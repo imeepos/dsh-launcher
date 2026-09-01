@@ -1,11 +1,11 @@
+use super::launcher_runtime::{expand_tilde, home_dir, strip_dsh_env, tail_lines, INSTALL_TIMEOUT};
+use crate::registry::{validate_id, versions_dir, RegResult};
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
-use super::launcher_runtime::{expand_tilde, home_dir, strip_dsh_env, tail_lines, INSTALL_TIMEOUT};
-use crate::registry::{validate_id, versions_dir, RegResult};
 pub fn resolve_npm() -> RegResult<PathBuf> {
     if let Ok(p) = std::env::var("DSH_LAUNCHER_NPM") {
         let p = expand_tilde(&p);
