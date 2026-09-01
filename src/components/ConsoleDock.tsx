@@ -20,8 +20,8 @@ export default function ConsoleDock() {
     const latest = lines[lines.length - 1] ?? "暂无日志";
     return (
       <button className="console-bar" onClick={() => setOpen(true)} aria-expanded={false}>
-        <span aria-hidden>▲</span>
-        <span className="latest-label">日志控制台</span>
+        <span className="caret" aria-hidden>▲</span>
+        <span className="latest-label">LOGS</span>
         <span className="latest">{latest}</span>
       </button>
     );

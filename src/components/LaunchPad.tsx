@@ -12,15 +12,15 @@ function HomeSidebar({ lp, onAdd, onRegister }: { lp: LP; onAdd: () => void; onR
     <div className="launch-col">
       <div className="col-label">
         <span>Homes</span>
-        <div className="toolbar-actions">
-          <button onClick={onRegister} disabled={lp.busy}>登记</button>
-        </div>
+        <button className="icon-add" onClick={onAdd} disabled={lp.busy} aria-label="新建 Home" title="新建 Home">
+          +
+        </button>
       </div>
       <div className="home-list">
         {lp.homes.map((h) => (
           <HomeCard key={h.id} home={h} selected={h.id === lp.homeId} onSelect={() => lp.setHomeId(h.id)} />
         ))}
-        <button className="home-card add-card" onClick={onAdd}>+ 新建 Home</button>
+        <button className="home-card add-card" onClick={onRegister}>登记已有 Home</button>
       </div>
     </div>
   );
@@ -30,7 +30,15 @@ function ProfileArea({ lp }: { lp: LP }) {
   return (
     <div className="launch-col">
       <div className="col-label">
-        <span>Profiles{lp.home ? " · " + lp.home.id : ""}</span>
+        <span>
+          Profiles
+          {lp.home && (
+            <>
+              <span className="crumb-sep" aria-hidden>›</span>
+              <span className="crumb-home mono">{lp.home.id}</span>
+            </>
+          )}
+        </span>
       </div>
       {lp.error && <p className="error">{lp.error}</p>}
       {!lp.home ? (

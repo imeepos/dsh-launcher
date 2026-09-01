@@ -23,7 +23,7 @@ export default function ProfileCard({ info, isRunning, busy, onStart, onStop }: 
         {isRunning ? "运行中" : "已停止"} · {info.bundleCount} 个 bundle
       </p>
       <button
-        className={"run-btn " + (isRunning ? "danger" : "primary")}
+        className={"run-btn " + (isRunning ? "stop" : "primary")}
         onClick={isRunning ? onStop : onStart}
         disabled={busy}
       >
