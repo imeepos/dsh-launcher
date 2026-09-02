@@ -1,6 +1,8 @@
 # 数据库建模 v2(装机引擎 + 环境管家)
 
-> 状态:**待确认**。按 DESIGN-PRODUCT.md 宪章重构,v1(工具台模型)全盘作废。
+> 状态:**已确认**(2026-09-02 §6 五项决策:直连 LLM API 自研轻引擎 / 首批内置目录
+> Node LTS·Current+Python+Git+dsh+Claude Code+Codex CLI+Gemini CLI / auto_apply 默认关 /
+> system 组件只读检测收编延后 / 自动快照 20 份滚动+手动永久)。
 > 引擎:SQLite(rusqlite bundled,WAL),落盘 `~/.dsh-launcher/launcher.db`,snake_case,
 > schema 版本用 schema_migrations 表管理。时间统一 epoch ms。
 
@@ -244,12 +246,10 @@ content TEXT / created_at。
 - ~/.dsh-launcher/versions 既有 npm 安装:首检识别为 installs(scope=managed,
   installed_by=system,version_id 可回填),纳入托管与卸载范围。
 
-## 6. 待确认决策
+## 6. 决策记录(2026-09-02 已确认)
 
-1. **AI 引擎接入**:直连 LLM API 自研轻代理循环(建议,engine_config 可配 provider)
-   还是内嵌 dsh 作为引擎运行时?
-2. **内置目录范围**:首批组件 = Node LTS/Current、Python、Git + dsh、Claude Code、Codex CLI、
-   Gemini CLI —— 增删?
-3. **auto_apply 默认值**:计划默认需确认(建议,普通人可控)还是全自动一步到位?
-4. **system 组件收编**:MVP 只读检测 + 收编按钮延后(建议)还是 MVP 即支持收编?
-5. **快照保留**:auto 20 份滚动 + manual 永久(建议)还是统一 30 天?
+1. **AI 引擎接入**:直连 LLM API,自研轻代理循环;engine_config 可配 provider/model/base_url —— ✅
+2. **内置目录范围**:Node LTS/Current、Python、Git + dsh、Claude Code、Codex CLI、Gemini CLI —— ✅
+3. **auto_apply 默认值**:默认 false,计划需用户确认;设置可切全自动 —— ✅
+4. **system 组件收编**:MVP 只读检测,收编按钮置灰延后 —— ✅
+5. **快照保留**:auto 20 份滚动,manual 永久(settings 可调) —— ✅
