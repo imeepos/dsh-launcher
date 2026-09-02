@@ -1,127 +1,161 @@
-# UI 设计(基于已确认的 DESIGN-DB.md)
+# UI 设计 v2(装机引擎 + 环境管家)
 
-> 状态:待确认。库表模型已于 2026-09-02 确认,本文档定义信息架构、视图与数据绑定、
-> 组件规划与交互规则;确认后进入实现(UR1–UR4)。
+> 状态:待确认。前置:DESIGN-PRODUCT.md(宪章)与 DESIGN-DB.md v2(已确认)。
+> 设计原则:**普通人第一眼就会用**——大按钮、说人话、过程透明、出事能退。
 
-## 1. 信息架构:四个主视图 + 一个专属分组
+## 1. 信息架构
 
 ```text
-顶栏: CLI 工具台 | [工具库] [目录] [运行记录] [DSH] [设置]        主题切换
-内容区: 视图面板
-底部: ConsoleDock(日志停靠台,全局)
+顶栏:  AI 装机管家 | [首页] [AI 助手] [环境] [备份] [设置]        主题切换
+底部:  动作流水停靠条(agent_actions 实时,点击展开)
+首启:  三步向导全屏接管(欢迎 → 体检 → 选 AI 工具装)仅一次
 ```
 
-| 视图 | 服务域(表) | 默认 |
+| 视图 | 服务域(表) | 定位 |
 |---|---|---|
-| 工具库 | tools / tool_installations / tool_tags / runs(实时态) | **是**(定位主表面) |
-| 目录 | rp_connections / rp_products / rp_releases / rp_artifacts | |
-| 运行记录 | runs / run_log_lines | |
-| DSH(code='dsh' 专属) | dsh_homes / dsh_profile_configs + runs | |
-| 设置 | settings / rp_connections(复用) / 日志保留策略 | |
-
-现有视图映射:启动台+Homes → 合入「DSH」;版本库 → 演进为「工具库」;目录 → 保留改数据源;
-新增「运行记录」「设置」。首跑向导保持全屏接管,UR4 分模式。
+| 首页 | host_profile, probe_*, components, installs, agent_tasks | 一眼看懂电脑能不能用 AI,一键装好 |
+| AI 助手 | agent_sessions/messages/tasks/actions | 对话式排障与执行,过程透明 |
+| 环境 | components/versions/installs/shims/env_edges | 管理已装与可装的一切 |
+| 备份 | snapshots / restores | 保命能力 |
+| 设置 | engine_config, settings | 引擎/网络/策略 |
 
 ## 2. 视图明细
 
-### 2.1 工具库(默认视图)
+### 2.1 首页(默认视图)
 
 ```text
-[搜索框___________] [标签▾] [全部来源▾]        [+ 手动登记] [从目录安装]
-┌──────────────────────────────────────────────┐
-│ ▾ dsh  (DSH · 3 个安装 · 1 运行中)      [标签] │  ← 工具卡(可折叠)
-│   ├ v0.1.1-rc.2  npm    指纹 0.1.1  ● 运行中  │  ← 安装行
-│   │   [启动台…] [指纹] [删除]                 │
-│   └ dev-repo     dev    未采集                │
-├──────────────────────────────────────────────┤
-│ ▸ releasectl (2 个安装)                [标签] │  ← 折叠态
+┌────────────────────────────────────────────────────┐
+│  你的电脑准备好用 AI 了吗?                [重新体检] │
+│  ● 就绪(3 分钟前体检)  缺 Node.js · 磁盘充足       │
+├────────────────────────────────────────────────────┤
+│  选一个 AI 工具,我帮你装好:                          │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+│  │ dsh     │ │Claude   │ │Codex    │ │Gemini   │  │
+│  │ ✓可安装  │ │ Code    │ │ CLI     │ │ CLI     │  │
+│  │         │ │✓可安装   │ │⚠需 Node │ │⚠需 Node │  │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
+│        [ 一键装好所选工具(含全部依赖) ]              │
+├────────────────────────────────────────────────────┤
+│ 最近动态: 09-30 装好 Claude Code · 09-30 体检通过    │
+└────────────────────────────────────────────────────┘
+```
+
+- 状态行:probe_runs 最新 overall + 失败/警告项(check_key 人话映射)。
+- 工具卡:components(kind='ai_tool');依赖满足度由 component_deps 对 installs 实时求值
+  → ✓可安装 / ⚠缺 X / ✓已装(显示版本与打开方式)。
+- [一键装好] → 创建 agent_task(goal=所选工具) → 跳计划确认对话框(§2.2)。
+
+### 2.2 计划确认与执行(全产品核心交互,模态)
+
+```text
+要做什么: 装好 Claude Code(含依赖)
+┌ 步骤预览 ────────────────────────────────────┐
+│ 1. 安装 Node.js 22 LTS(缺)      约 40MB     │
+│ 2. 写入 PATH(shims 目录)                    │
+│ 3. npm 安装 @anthropic-ai/claude-code        │
+│ 4. 验证 claude --version                     │
+│ 每步开始前自动备份;失败自动回滚到初始状态      │
 └──────────────────────────────────────────────┘
+            [取消]  [开始执行]
+执行中 → 步骤逐条点亮(ActionTimeline),失败步红显+原因+已自动回滚提示
+完成 → 交接报告:装了什么/命令怎么用(claude)/在哪卸载
 ```
 
-- **工具卡**:display_name + code 徽标 + 安装数 + 运行中数(实时查 runs ended_at IS NULL);
-  标签 chips(来自 tool_tags,点击即筛选)。
-- **安装行**:version_label + source 徽标(npm/dev/manual/platform)+ fingerprint;
-  操作按 run_mode:`service` → [启动/停止](长驻,起停即走);`oneshot` → [运行…](弹参数对话框);
-  通用操作:[指纹] [删除](级联删 runs,二次确认提示影响面)。
-- **空态**:无工具 → 引导「从目录安装 / 手动登记」;无网络连接不影响本地工具。
-- 来源 `platform` 的行显示「可升级」徽标位(TR3:比对 rp_artifacts.fetched 版本)。
+- auto_apply=false(默认)必经确认;设置开启后自动跳过(执行中仍可暂停)。
 
-### 2.2 目录
-
-沿用 TR1 已实现三步流,数据源从实时 API 改为**缓存表 + TTL 刷新**:
-
-- 连接配置(RpSettingsForm)不变;连接成功 → 写 rp_connections + 触发缓存刷新。
-- 浏览读 rp_releases / rp_artifacts;面板角标显示缓存龄(`x 分钟前`,>10 分钟自动重拉,
-  失败显示旧数据 + 黄条提示——失败路径必须可观测)。
-- 安装动作不变(download-url → 校验 → 登记 → tool_installations.artifact_id 溯源)。
-
-### 2.3 运行记录
+### 2.3 AI 助手
 
 ```text
-[工具▾] [类型: 全部|工具|DSH] [状态: 全部|运行中|已结束] [日期____]
-┌────────┬──────────┬──────┬──────────┬────────┐
-│ 时间    │ 工具/安装 │ 类型  │ 参数      │ 结果    │
-│ 11:02  │ releasectl│ 工具  │ --help   │ exit 0  │
-│ 10:55  │ dsh@rc.2  │ DSH   │ —        │ ● 运行中│
-└────────┴──────────┴──────┴──────────┴────────┘
-点击行 → 展开日志面板(run_log_lines,带 is_err 红染,加载上限 500 行+加载更多)
+[会话列表 ▾]  新对话
+┌ 对话区 ──────────────────────┬ 任务侧栏 ─────────┐
+│ 用户: 我要装 codex            │ 任务: 装好 codex   │
+│ 助手: 缺 Node,计划 3 步…      │ 状态: 等待确认     │
+│ (计划/动作以卡片嵌入对话流)    │ [查看计划] [确认]  │
+└──────────────────────────────┴───────────────────┘
+输入框: [_________________________________] [发送]
 ```
 
-- 运行中行实时更新(process-exit 事件驱动);[导出日志] 落文件。
+- 输入即目标:引擎可反问澄清;凡产出可执行任务走同一计划→确认→执行管道。
+- 动作卡片实时反映 agent_actions 状态;失败卡片带 [查看日志] 与 [重试]。
 
-### 2.4 DSH(专属分组)
+### 2.4 环境
 
-- 子标签:[启动台] [Homes];内容 = 现有 LaunchPad / HomesPanel 原样迁入,
-  数据源改 dsh_homes + tool_installations(tool.code='dsh')。
-- 启动即写 runs(context='dsh_profile');Home 绑定/最后成功启动写回 FK。
-- 视图入口仅在存在 code='dsh' 工具时显示(未装 dsh 不出现空分组)。
+```text
+[运行时 (3)] [AI 工具 (4)] [其他 (1)]        [立即体检]
+▾ 运行时
+  ● Node.js 22.11.0   managed · active   [设为默认] [卸载] [重装]
+  ○ Node.js 20.18.0   managed · inactive [设为默认] [卸载]
+  ○ Node(系统已装 v18)  检测 · 只读 [收编(即将支持)]
+▾ AI 工具
+  ● dsh 0.1.1-rc.2    managed · active   命令: dsh  [卸载] [重装]
+```
 
-### 2.5 设置
+- 行数据:installs JOIN component_versions;状态徽标(active/inactive/broken/检测)。
+- broken 行红显 + [修复](=重装)与 [查看动作记录]。
+- system 组只读,收编按钮置灰 tooltip「即将支持」;kind 分页签;hover 高亮依赖链。
 
-- 通用:日志保留(30 天/万行,只读展示策略 + [立即清理])、主题。
-- 安装源:npm registry 覆盖、node 镜像、系统 Node 开关(settings KV)。
-- 连接:rp_connections 编辑(复用 RpSettingsForm,从目录抽离)。
-- 关于:版本、registry.json 导入状态(已导入/未导入/无旧文件)。
+### 2.5 备份
 
-## 3. 数据绑定与命令面(前后端契约)
+```text
+[立即备份]  策略: 自动快照保留 20 份 · 手动永久(设置中改)
+┌──────────────┬────────┬──────────┬────────┐
+│ 时间          │ 类型    │ 范围      │ 大小    │
+│ 11:02 装Node前│ 自动    │ 全部      │ 38 MB  │ [恢复] │
+│ 10:40 (手动)  │ 手动    │ 托管目录   │ 21 MB  │ [恢复][删除]│
+└──────────────┴────────┴──────────┴────────┘
+恢复需二次确认;恢复过程显示步骤与结果(成功/失败+原因)。
+```
 
-启动时:`db_migrate`(自动建表/升级)+ `registry_import`(检测旧文件一次性导入)。
+### 2.6 设置
 
-| 视图 | 读 | 写(命令) |
+- **AI 引擎**:provider/model/base_url、API Key(仅存 .env 引用名,[测试连接]),
+  auto_apply 开关(关=每次计划需确认)。
+- **网络**:npm registry 镜像、下载镜像、代理。
+- **策略**:快照保留(20 份/手动永久)、体检提醒。
+- **关于**:版本、托管目录大小统计与 [打开目录]。
+
+## 3. 数据绑定与命令面
+
+启动:`db_migrate` → 首检(自动 probe + 识别既有安装入 installs)。
+
+| 视图 | 读命令 | 写命令 |
 |---|---|---|
-| 工具库 | list_tools(with_tags, running_counts), list_installations | upsert_tool, delete_tool, set_tool_tags, add_manual_installation, remove_installation, fingerprint_installation, start_run / stop_run |
-| 目录 | rp_list_* (读缓存,后台刷新) | rp_connect / rp_refresh_cache / rp_install_artifact |
-| 运行记录 | list_runs(filter), get_run_log(run_id, after_seq) | export_run_log, delete_run |
-| DSH | list_homes, list_profiles(动态) | add/create/clone/bind/remove_home, start_profile(内部写 runs), stop_run |
-| 设置 | settings_all, rp_get_config | settings_set, rp_set_config, logs_purge_now |
+| 首页 | probe_latest, list_ai_tools(含依赖满足度) | probe_start, create_task(goal) |
+| 计划/执行 | task_get, actions_list | confirm_task, cancel_task, retry_task |
+| AI 助手 | list_sessions, messages_list, list_tasks | session_create, message_send |
+| 环境 | list_components(with_installs) | uninstall_install, reinstall_install, activate_install |
+| 备份 | list_snapshots | create_snapshot, restore_snapshot, delete_snapshot(manual) |
+| 设置 | engine_get_config, settings_all | engine_set_config, settings_set, snapshot_purge_now |
 
-事件沿用:process-log / process-exit / install-progress;新增 `runs-changed`(历史落库后通知
-运行记录视图刷新)。
+事件:`probe-updated`、`task-updated`(动作状态变化)、`action-log`(底部流水)。
+引擎循环为后台任务,UI 只读 DB + 订阅事件,不发命令改状态(除 confirm/cancel/retry)。
 
-## 4. 组件规划(复用优先)
+## 4. 组件规划
 
-| 组件 | 来源 | 动作 |
+| 组件 | 来源 | 说明 |
 |---|---|---|
-| AppShell / ConsoleDock / ToastHost / 主题切换 | 现有 | 保留 |
-| ToolCard / InstallationRow | 新增(替代 VersionTable) | 按 §2.1 |
-| RunDialog | ToolRunDialog 演进 | run_mode='oneshot' 用 |
-| RunHistoryTable / RunLogView | 新增 | §2.3 |
-| HomesPanel / LaunchPad | 现有 | 迁入 DSH 分组,数据源换 SQL |
-| RpSettingsForm / ReleaseTable / ArtifactTable | TR1 现有 | 数据源换缓存表 |
-| SettingsPane | 新增 | §2.5 |
+| AsyncButton / SubmitButton / ToastHost / ThemeToggle / Modal 族 | 现有 | 保留 |
+| ProbeStatusCard / ToolPickCard / HandoffReport | 新增 | 首页三件套 |
+| PlanReviewDialog / ActionTimeline | 新增 | 核心交互 |
+| ChatPanel / TaskCard | 新增 | AI 助手 |
+| InstallTree(替代 VersionTable) | 重写 | 环境 |
+| SnapshotTable | 新增 | 备份 |
+| ActionDock(替代 ConsoleDock) | 改造 | 底部动作流水 |
+| SetupWizard | 改造 onboarding 向导 | 三步壳 |
 
 ## 5. 交互红线
 
-- 破坏性操作(删工具/删安装/清日志)二次确认并显示级联影响行数。
-- 缓存过期/刷新失败不得白屏:显示旧数据 + 黄条;失败打点 toast。
-- 运行态以 DB(runs.ended_at)+ 实时事件双源判定,事件丢失可由 list_runs 兜底纠正。
-- 视图切换保持挂载(沿用现有显隐方案),保留筛选与表单状态。
+1. auto_apply=false 时,任何变更动作未经确认不得执行(引擎侧同约束,双保险)。
+2. 变更动作前置快照失败 → 该动作不得开始,任务转 failed 并提示手动备份。
+3. 卸载/恢复二次确认必须展示影响面(槽位/命令/配置改动数,查 env_edges 计数)。
+4. 断网:体检项逐条标注网络失败而非全局失败;下载类动作可重试且不重复落盘。
+5. 所有失败可见:动作失败必有 error 文案 + 日志入口;禁止静默吞错。
 
 ## 6. 里程碑
 
 | 阶段 | 内容 | 验收 |
 |---|---|---|
-| UR1 | rusqlite 接入 + 13 表迁移 + registry 导入 + 工具库主视图 | 删 launcher.db 裸启可建库;旧 registry.json 导入后数据一致 |
-| UR2 | 运行记录视图 + 日志保留策略 + 设置页 | 起停一次工具后运行记录可查可导出 |
-| UR3 | 目录切缓存表 + TTL 刷新 + DSH 分组迁移 | 断网仍可浏览缓存;DSH 启停写 runs |
-| UR4 | 首跑向导分模式 + 可升级徽标(TR3 合流) | 无 dsh 环境装任一平台工具不触发 DSH 向导 |
+| UR1 | 16 表迁移 + 探针框架 + 首页只读(体检/工具卡) | 裸机首启:体检出真实结果,依赖求值正确 |
+| UR2 | 引擎循环(计划→确认→执行→复检→回滚)+ 首页装机闭环 | 删掉 Node 后「一键装好 Claude Code」走通;中途杀进程可恢复 |
+| UR3 | 环境视图 + 卸载/重装/切换 + 备份视图 | 卸载后 shell 无残留(shims/PATH 验证);快照可恢复 |
+| UR4 | AI 助手对话 + 设置 + 三步向导壳 | 无 Node 裸机按向导三步装好 dsh;对话可发起装机任务 |
