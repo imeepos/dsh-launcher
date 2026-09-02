@@ -1,71 +1,54 @@
-# AGENTS.md
 
-## 项目代码规范
+# 无论任何任务 skill: `self-evolving` 总是需要遵守的
+> 技能文件地址：`.agents/skills/self-evolving/SKILL.md`
+> 使用worktree避免冲突，完成后合并到主分支，合并成功后清理老分支确保代码安全，不用用户同意
+> 写完的东西要立刻存档（commit）
+> 禁止直接在主分支上修改任何代码
+> 102服务器信息： imeepos@192.168.0.102
 
-### 文件与函数规模
+- **短命分支**：任务完成当天即合并，不过夜；冲突一律在 feature 侧消化，进 main 的合并保持干净。
+- **合并前反向同步**：worktree 内先 `git merge main`（本地私有分支可 rebase），解冲突跑门禁，再回主树合并。
+- **中央登记文件 append-only**：menu.def.ts / App.tsx / i18n types+locale / fields.md 的注册类改动压成独立小提交，不埋进大 feature 提交。
+- **收尾四步（硬性，防代码丢失）**：① `git push gitea <分支>`（远端名是 gitea 不是 origin）→ ② 主树 `git merge --ff-only <分支>` → ③ `git worktree remove` → ④ `git branch -d` + `git push gitea --delete`。**执行前先核对 cwd 在主树（`pwd` + `git branch --show-current`）**：在 feature worktree 内执行②是 no-op 假成功（2026-08-28 实例），还会把本地 main 指针误推。
+- **ff-merge 失败 ≠ commit 丢失**（commit 安全在分支 ref 上）：失败时严禁删 worktree，唯一动作是回 worktree `git rebase main` 后重试②。
+- 误闯并行会话的 worktree 并编辑其未提交文件是事故（2026-08-22 用户点名）；发现半成品先 `git worktree list` 判断归属。
 
-- 单个源码文件不得超过 200 行（按物理行计数）。
-- 单个函数、方法或 React 组件函数不得超过 50 行。
-- 复杂逻辑应按职责拆分为多个模块、组件或辅助函数，不要通过压缩代码规避限制。
-- 测试文件、脚本和配置源码同样遵守文件规模限制。
+## 迁移编号规则（防并行撞号，2026-08-22 固化）
+worktree 只隔离文件，不隔离全局共享的流水资源（迁移号/路由/权限码/契约章节），
+各自"最大号+1"必撞（当日 000102/000103 连环撞号两次）。规则：
+- 新增迁移前必查两处：`ls migrations | tail`（本树）+ `git for-each-ref refs/heads` 逐分支
+  `git ls-tree <分支> -- migrations/`（未合并分支占号）。
+- `make check` 的 check-contract-sync D 项机械拦截：同树撞号 + 跨未合并分支撞号，红了必须让号，
+  不许进 baseline 豁免（历史撞号 000044/000095 为存量例外，已登记）。
+- 让号规则：已合并进 main 者优先，后来者让号；未进任何库的迁移直接改名即可；
+  已进库的改名必须同步 `UPDATE schema_migrations`（见 edd0666 先例）。
+- **占号顺序（2026-09-01 双会话撞号实证）**：并行轮先 `git fetch gitea && git merge main`
+  反向同步**再**定迁移号，比"各自取最大号+1"可靠——后查号只能事后让号，先同步可直接避开。
 
-### 模块设计
+## 提交纪律（revert 可行是硬约束）
+- message 一律 `type(scope): subject`（feat/fix/refactor/docs/test/chore/style），正文写机理（why），不只写标题。
+- 一次提交 = 一个可独立陈述的变更；feat 带测试、fix 带回归、契约变更带 fields.md 同步，配套随主变更同提交。
+- 巨石提交仅限纯结构迁移（零行为变更）；行为变更禁止一锅端（不许 feat+fix+重构混装、不许多个不相关能力塞一个提交）。
+- 判断标准：这个提交能否被单独 revert 而不伤邻居？不能就拆。
 
-- 前端 React 组件按职责拆分：页面容器只负责状态编排，表格、对话框、表单字段和操作区独立成组件。
-- React 副作用和可复用状态逻辑提取到 src/hooks/。
-- Tauri/Rust 代码按职责拆分：命令装配、注册表模型、注册表持久化、业务方法、进程运行时和 npm 安装逻辑分别维护。
-- 模块入口文件只做声明、导出和装配，不承载大量业务实现。
-- 保持现有 API、命令名、序列化字段名和用户可见错误语义不变；重构优先保证行为等价。
+## 数据核查与改动自查红线（2026-08-29，全文见 docs/notes/adopted/2026-08-29-audit-closeout-rulings.md §7）
+- **先查库、再接口复核**：任何"孤儿/不一致"结论必须先 SQL 直查权威表，再以接口复核读路径（"孤儿支付"先例系读路径假象）。
+- **改动文件前自查余量**：目标文件行数（红线 300）+ 磁盘剩余空间；make check C 项机械兜底行数。
+- **并行会话基线**：合并前核对本地 main 与远端一致再 ff-only；测试运行与工作区改写严禁对同一 worktree 并发。
+- 验收/E2E 造数不过夜：mainchain-acceptance.sh 收尾自动 acc_ 清理 + 孤儿巡检门禁；102 每日 cron 见 docs/ops/patrol-cron.md。
 
-### 前端规范
+## 已知环境事实
+brew 和 graphviz 都在 /opt/homebrew/bin
 
-- 使用 TypeScript 类型定义，API 封装集中在 src/api.ts。
-- 样式按职责拆分到 src/styles/，由 src/App.css 按稳定顺序导入。
-- 组件回调通过明确的 Props 类型传递，避免隐式共享状态。
-- 异步操作必须处理 loading、错误和清理逻辑；事件监听在组件卸载时解除。
+编码要求：
+- 单个文件不要超过300行，推荐200行以内
+- 单个函数/方法不要超过60行，推荐40行以内
+- 注释不要废话/套话，函数名/方法名就是最好的注释
+- 能复用就不要早轮子
+- 不要使用emoji图标
+- 读文件请使用Read工具
+- 编辑文件前请务必先读取文件
+- 失败路径必须留有可观测信号（告警日志或显式状态），禁止静默吞错
 
-### 操作反馈规范
-
-反馈分三层，所有可点击操作至少落到一层，克制但不简陋——砍范围不砍质量：
-
-- 按压反馈（即时）：所有按钮提供 :active 按压态；同步动作（打开对话框、切换高亮）以此为唯一反馈，不人为加延迟。
-- 过程反馈（loading/进度）：异步操作必须防重入（禁用按钮 + aria-busy），转圈配 busy 文案；超过数秒的操作（如 npm 安装）加进度条。
-- 结果反馈——微反馈与轻提醒：
-  - 微反馈（成功）：操作者停留原界面时，按钮内短暂显示 ✓ + 结果文案（如「已刷新」），约 1.2s 后自动恢复，不弹窗。
-  - 轻提醒（toast）：失败必弹，右下角轻提醒，文案统一「前缀： 原始错误」，不吞不改错误；成功仅在按钮态不可见时（如对话框已关闭）才弹 toast。
-  - 行内错误：表单对话框提交失败保留行内错误展示，便于对照修改，不与 toast 叠加。
-
-实现约定：
-
-- 复用现有设施，不重造：AsyncButton（自管理异步按钮）、SubmitButton（受控忙态按钮）、useAsyncAction（状态机）、toastStore/showFailure（轻提醒）。
-- 无精确进度的长任务（如 npm install）用「日志行数 + 已耗时」爬行估算：起步给底值、封顶 90%、成功补满 100%、失败定格，并注明为估算。
-- 反馈用到的定时器与事件监听必须在组件卸载时清理；toast 自动消失时间成功短、失败长且可手动关闭。
-
-### Rust/Tauri 规范
-
-- 注册表写入必须经过现有串行锁和原子保存流程。
-- 文件路径、版本 ID 和 npm 安装目录必须进行校验，防止目录穿越。
-- 子进程必须配置合理的 stdin/stdout/stderr，并处理退出码、超时和清理。
-- 长耗时命令（npm 安装、指纹实测、递归删除/拷贝等）必须声明为 async 并经 tauri::async_runtime::spawn_blocking 执行；同步命令跑在主线程，会卡死界面。
-- 修改 Rust 后在 src-tauri 目录执行格式化和测试。
-
-### 验证要求
-
-提交前至少执行：
-
-    pnpm build
-    pnpm check:size
-
-涉及 Rust 时还要执行：
-
-    cargo fmt --check
-    cargo check
-    cargo test
-
-Rust 命令的工作目录是 src-tauri/。代码规模检查由 scripts/check-size.mjs 提供，并通过 package script pnpm check:size 调用。
-
-### 提交规范
-
-- 提交前确认 git status，避免遗漏新增文件或误提交生成物。
-- 使用简洁、明确的 Conventional Commit 风格提交信息，例如 refactor: split launcher modules。
-- 不提交 dist/、target/、node_modules/ 等生成目录，除非项目明确要求。
+## 密钥信息
+存放在: .env
