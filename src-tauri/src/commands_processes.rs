@@ -89,7 +89,7 @@ pub fn start_profile(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn spawn_exit_watcher(
+pub(crate) fn spawn_exit_watcher(
     app: AppHandle,
     child: std::sync::Arc<std::sync::Mutex<std::process::Child>>,
     rx: std::sync::mpsc::Receiver<(bool, String)>,

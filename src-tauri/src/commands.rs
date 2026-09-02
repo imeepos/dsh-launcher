@@ -34,17 +34,23 @@ pub fn list_versions() -> RegResult<Vec<VersionEntry>> {
     Ok(peek_registry()?.versions)
 }
 
-/// 手动登记既有 dsh 可执行文件:用户指定 bin(必填)与 cwd(可选)。
+/// 手动登记既有可执行文件:bin(必填)、cwd(可选)、tool(工具归属,空视为 dsh)。
 #[tauri::command]
 pub fn add_manual_version(
     bin: String,
     cwd: Option<String>,
     id: Option<String>,
+    tool: Option<String>,
 ) -> RegResult<VersionEntry> {
     let bin = bin.trim().to_string();
     if bin.is_empty() {
         return Err("bin 不能为空".into());
     }
+    let tool = tool
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(String::from);
     with_registry(move |reg| {
         let base = match id.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
             Some(x) => x.to_string(),
@@ -68,6 +74,7 @@ pub fn add_manual_version(
                 .map(|c| launcher::expand_tilde(c).to_string_lossy().into_owned()),
             fingerprint: None,
             added_at_ms: Some(registry::now_ms()),
+            tool,
         };
         reg.upsert_version(entry.clone())?;
         Ok(entry)
@@ -97,6 +104,7 @@ pub fn add_dev_version(repo_path: String, id: Option<String>) -> RegResult<Versi
             cwd: Some(repo.to_string_lossy().into_owned()),
             fingerprint: None,
             added_at_ms: Some(registry::now_ms()),
+            tool: None,
         };
         reg.upsert_version(entry.clone())?;
         Ok(entry)

@@ -190,6 +190,67 @@ pub(crate) fn spawn_pipe_forwarders(
     (rx, t_out, t_err)
 }
 
+/// 通用工具运行键的 home 段:区别于真实 homeId(DESIGN-TOOLS.md §1)。
+pub const TOOL_HOME_ID: &str = "__tool__";
+
+fn tool_lock_path(version_id: &str) -> PathBuf {
+    crate::registry::launcher_base_dir()
+        .join("run")
+        .join(format!("tool-{version_id}.lock"))
+}
+
+/// 通用工具单实例锁:同 versionId 二次启动直接拒绝;进程死亡自动释放。
+pub fn acquire_tool_lock(version_id: &str) -> RegResult<File> {
+    let path = tool_lock_path(version_id);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("创建 {} 失败: {e}", parent.display()))?;
+    }
+    let file = File::create(&path).map_err(|e| format!("打开 {} 失败: {e}", path.display()))?;
+    if file.try_lock().is_err() {
+        return Err(format!("该版本已在运行(锁被占用): {}", path.display()));
+    }
+    Ok(file)
+}
+
+/// 构造通用工具命令:<bin> <args...>;继承环境,不注入 DSH_*(与 DSH 链路的差异点)。
+pub fn build_tool_command(bin: &str, extra: &[String], cwd: Option<&str>) -> RegResult<Command> {
+    let tokens: Vec<&str> = bin.split_whitespace().collect();
+    if tokens.is_empty() {
+        return Err("bin 不能为空".into());
+    }
+    let mut c = Command::new(expand_tilde(tokens[0]));
+    c.args(&tokens[1..]);
+    c.args(extra.iter().filter(|s| !s.is_empty()));
+    if let Some(cwd) = cwd.map(expand_tilde) {
+        c.current_dir(cwd);
+    }
+    make_group_leader(&mut c);
+    c.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    Ok(c)
+}
+
+/// 启动通用工具并持有单实例锁;失败返回 Err(已在运行),不产生进程。
+pub fn start_tool(
+    bin: &str,
+    version_id: &str,
+    extra: &[String],
+    cwd: Option<&str>,
+) -> RegResult<RunningDsh> {
+    let lock = acquire_tool_lock(version_id)?;
+    let mut cmd = build_tool_command(bin, extra, cwd)?;
+    let child = cmd.spawn().map_err(|e| format!("启动 {bin:?} 失败: {e}"))?;
+    Ok(RunningDsh {
+        child: std::sync::Arc::new(std::sync::Mutex::new(child)),
+        home_id: TOOL_HOME_ID.into(),
+        profile: version_id.into(),
+        version_id: version_id.into(),
+        started_at_ms: crate::registry::now_ms(),
+        _lock: lock,
+    })
+}
+
 /// 轮询等待退出(监控线程用):Some(status) 即已退出。
 pub fn try_wait(
     child: &std::sync::Arc<std::sync::Mutex<Child>>,

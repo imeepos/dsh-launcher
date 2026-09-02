@@ -6,7 +6,9 @@ pub mod commands_heavy;
 pub mod commands_homes;
 pub mod commands_onboarding;
 pub mod commands_processes;
+pub mod commands_rp;
 pub mod commands_runtime;
+pub mod commands_tools;
 pub mod envcheck;
 pub mod envcheck_probe;
 pub mod envcheck_sys;
@@ -15,6 +17,7 @@ pub mod launcher;
 pub mod launcher_process;
 pub mod onboarding;
 pub mod registry;
+pub mod rp;
 pub mod runtime_install;
 pub mod runtime_install_core;
 
@@ -33,6 +36,10 @@ mod launcher_process_tests;
 #[cfg(test)]
 #[path = "runtime_install_tests.rs"]
 mod runtime_install_tests;
+
+#[cfg(test)]
+#[path = "rp_tests.rs"]
+mod rp_tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -65,8 +72,17 @@ pub fn run() {
             commands_onboarding::onboarding_complete,
             commands_onboarding::repair_runtime,
             commands_runtime::npm_latest_version,
+            commands_tools::start_tool,
+            commands_rp::rp_get_config,
+            commands_rp::rp_set_config,
+            commands_rp::rp_connect,
+            commands_rp::rp_list_products,
+            commands_rp::rp_list_releases,
+            commands_rp::rp_list_artifacts,
+            commands_rp::rp_install_artifact,
         ])
         .manage(commands_processes::ProcessMap::default())
+        .manage(commands_rp::RpSession::default())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

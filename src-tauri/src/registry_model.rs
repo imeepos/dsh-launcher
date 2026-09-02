@@ -32,6 +32,16 @@ pub struct VersionEntry {
     pub fingerprint: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub added_at_ms: Option<u64>,
+    /// 工具归属名(DESIGN-TOOLS.md §1);缺省视为 dsh,旧 registry.json 零迁移
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool: Option<String>,
+}
+
+impl VersionEntry {
+    /// 工具归属显示名:未登记时回落 dsh。
+    pub fn effective_tool(&self) -> &str {
+        self.tool.as_deref().map(str::trim).filter(|s| !s.is_empty()).unwrap_or("dsh")
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,6 +67,44 @@ pub struct HistoryEntry {
     pub exit_code: Option<i32>,
 }
 
+/// release-platform 连接配置(DESIGN-TOOLS.md §2.3)。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RpSettings {
+    pub base_url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth: Option<RpAuth>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RpAuthMode {
+    /// X-Tenant-ID + X-Subject,仅本地 RELEASE_DEV_AUTH=true 服务
+    DevHeaders,
+    /// Bearer(rpat_ API token 或直接粘贴 JWT)
+    Bearer,
+    /// issuer password grant 换 JWT;JWT 只驻内存不落盘
+    Password,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RpAuth {
+    pub mode: RpAuthMode,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issuer_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenant: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+}
+
 /// 萌新首跑设置(DESIGN-ONBOARDING.md §6);全部字段可缺省,老文件零迁移。
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,6 +118,9 @@ pub struct Settings {
     /// 高级:改用系统 Node(默认 false,优先自带运行时)
     #[serde(default)]
     pub use_system_node: bool,
+    /// release-platform 连接(DESIGN-TOOLS.md);None = 未配置
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rp: Option<RpSettings>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

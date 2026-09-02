@@ -23,7 +23,28 @@ mod tests {
             cwd: (kind == VersionKind::Dev).then(|| "/tmp/repo".to_string()),
             fingerprint: None,
             added_at_ms: Some(1234567890),
+            tool: None,
         }
+    }
+
+    #[test]
+    fn tool_field_backward_compatible_and_fallback() {
+        // 旧文件无 tool 字段:反序列化为 None,展示回落 dsh(DESIGN-TOOLS.md §1)
+        let legacy = r#"{"id":"v1","kind":"manual","bin":"/usr/local/bin/releasectl"}"#;
+        let entry: VersionEntry = serde_json::from_str(legacy).expect("legacy json ok");
+        assert!(entry.tool.is_none());
+        assert_eq!(entry.effective_tool(), "dsh");
+
+        let mut reg = Registry::default();
+        let mut with_tool = sample("t1", VersionKind::Manual);
+        with_tool.tool = Some("releasectl".into());
+        reg.upsert_version(with_tool).expect("upsert ok");
+        assert_eq!(reg.versions[0].effective_tool(), "releasectl");
+
+        // 空/空白 tool 也回落 dsh
+        let mut blank = sample("t2", VersionKind::Manual);
+        blank.tool = Some("  ".into());
+        assert_eq!(blank.effective_tool(), "dsh");
     }
 
     #[test]

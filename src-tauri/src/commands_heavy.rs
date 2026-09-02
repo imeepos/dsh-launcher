@@ -88,6 +88,7 @@ fn install_npm_version_impl(
         cwd: None,
         fingerprint: None,
         added_at_ms: Some(registry::now_ms()),
+        tool: None,
     };
     with_registry(move |reg| {
         reg.upsert_version(entry.clone())?;
