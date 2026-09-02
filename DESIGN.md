@@ -2,7 +2,9 @@
 
 Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、多 profile。
 
-> 全新系统（萌新）首跑、环境检查与自愈设计见 DESIGN-ONBOARDING.md。
+> **定位升级（2026-09）**：应用整体定位为「所有命令行工具/无界面工具/非客户端 GUI 工具的
+> 统一可视化管理桌面」，对接 release-platform 作安装源；DSH 专用链路保留为其中一环。
+> 见 DESIGN-TOOLS.md。萌新首跑与环境自愈见 DESIGN-ONBOARDING.md。
 
 ## dsh 语义基准（设计依据，勿凭感觉改）
 
