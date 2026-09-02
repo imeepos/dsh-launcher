@@ -1,6 +1,7 @@
 # 本地数据库建模(SQLite)
 
-> 状态:**待确认**。确认库表/字段/关系后再进入 UI 设计(用户指令 2026-09-02)。
+> 状态:**已确认**(2026-09-02 用户拍板 §7 全部 6 项:SQLite 替换 / 日志入库+30 天·万行滚动保留 /
+> 平台缓存三表 TTL 10 分钟 / run_mode 建模 / 连接表单行 MVP / DSH 泛化 code='dsh')。
 > 上游对接域以 release-platform 实测 schema 为准(migrations/000001、000028;102 部署)。
 
 ## 1. 选型与边界
@@ -218,11 +219,11 @@ CHECK:`(context='tool') OR (home_id IS NOT NULL AND profile IS NOT NULL)`。
 
 导入事务化:任一步失败回滚且保留旧文件;成功后 `registry.json` → `registry.json.imported`。
 
-## 7. 待确认决策
+## 7. 决策记录(2026-09-02 已确认)
 
-1. **存储选型**:SQLite(rusqlite bundled)替换 registry.json,JSON 仅作导入源 —— 是否成立?
-2. **日志存储**:run_log_lines 入库(建议:保留 30 天、单 run 上限 1 万行,超限滚动丢弃最旧并打点)还是写文件只存元数据?
-3. **平台缓存**:rp_* 三表是否保留(收益:离线浏览、TR3 更新检查;成本:fetched_at 失效策略)?建议保留,TTL 10 分钟。
-4. **tools.run_mode**:service/oneshot 影响 UI 启停语义,是否按此建模?
-5. **多连接**:rp_connections 建表但 MVP 只用 'default' 单行 —— 多环境切换留 TR4,是否同意?
-6. **DSH 泛化**:DSH 作为 tools.code='dsh' 普通行,专属 UI 按 code 分派 —— 是否同意?
+1. **存储选型**:SQLite(rusqlite bundled)替换 registry.json,JSON 仅作导入源 —— ✅ 确认
+2. **日志存储**:run_log_lines 入库;保留 30 天、单 run 上限 1 万行,超限滚动丢弃最旧并打点 —— ✅ 确认
+3. **平台缓存**:rp_* 三表保留,TTL 10 分钟,事实源始终是平台 API —— ✅ 确认
+4. **tools.run_mode**:service/oneshot 建模,UI 按此区分启停语义 —— ✅ 确认
+5. **多连接**:rp_connections 建表,MVP 只用 'default' 单行 —— ✅ 确认
+6. **DSH 泛化**:DSH 作为 tools.code='dsh' 普通行,专属 UI 按 code 分派 —— ✅ 确认
