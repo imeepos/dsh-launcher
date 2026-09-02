@@ -2,16 +2,20 @@ export default function ManualAddFields({
   bin,
   cwd,
   id,
+  tool,
   onBinChange,
   onCwdChange,
   onIdChange,
+  onToolChange,
 }: {
   bin: string;
   cwd: string;
   id: string;
+  tool: string;
   onBinChange: (v: string) => void;
   onCwdChange: (v: string) => void;
   onIdChange: (v: string) => void;
+  onToolChange: (v: string) => void;
 }) {
   return (
     <>
@@ -30,6 +34,14 @@ export default function ManualAddFields({
           value={cwd}
           onChange={(e) => onCwdChange(e.target.value)}
           placeholder="运行时工作目录"
+        />
+      </label>
+      <label>
+        工具名(可选,空视为 dsh)
+        <input
+          value={tool}
+          onChange={(e) => onToolChange(e.target.value)}
+          placeholder="releasectl"
         />
       </label>
       <label>

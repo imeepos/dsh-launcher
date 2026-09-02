@@ -13,7 +13,7 @@ export default function Toolbar({
     <header className="topbar">
       <div className="brand">
         <img src="/assets/dsh-launcher-icon.png" alt="" className="brand-icon" />
-        <h1>dsh-launcher</h1>
+        <h1>CLI 工具台</h1>
       </div>
       <ViewTabs view={view} onView={onView} />
       <div className="topbar-actions">

@@ -6,6 +6,7 @@ import ConsoleDock from "./components/ConsoleDock";
 import EnvStatusBar from "./components/EnvStatusBar";
 import HomesPanel from "./components/HomesPanel";
 import LaunchPad from "./components/LaunchPad";
+import CatalogPane from "./components/catalog/CatalogPane";
 import Toolbar from "./components/Toolbar";
 import VersionsPane from "./components/VersionsPane";
 import useVersions from "./hooks/useVersions";
@@ -27,6 +28,9 @@ function App() {
         </div>
         <div className="view" hidden={view !== "homes"}>
           <HomesPanel versions={versions} />
+        </div>
+        <div className="view" hidden={view !== "catalog"}>
+          <CatalogPane refresh={refresh} />
         </div>
         <ConsoleDock />
       </AppShell>

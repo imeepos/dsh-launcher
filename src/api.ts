@@ -15,6 +15,16 @@ export interface VersionEntry {
   cwd?: string | null;
   fingerprint?: string | null;
   addedAtMs?: number | null;
+  /** 工具归属名;缺省视为 dsh(DESIGN-TOOLS.md §1) */
+  tool?: string | null;
+}
+
+/** 通用工具运行键的 home 段 */
+export const TOOL_HOME_ID = "__tool__";
+
+export function effectiveTool(v: VersionEntry): string {
+  const t = v.tool?.trim();
+  return t ? t : "dsh";
 }
 
 export interface InstallProgressPayload {
@@ -30,8 +40,9 @@ export function addManualVersion(
   bin: string,
   cwd: string | null,
   id: string | null,
+  tool: string | null,
 ): Promise<VersionEntry> {
-  return invoke("add_manual_version", { bin, cwd, id });
+  return invoke("add_manual_version", { bin, cwd, id, tool });
 }
 
 export function fingerprintVersion(id: string): Promise<VersionEntry> {
@@ -150,3 +161,5 @@ export function onProcessExit(
 ): Promise<UnlistenFn> {
   return listen<ProcessExitPayload>("process-exit", (event) => handler(event.payload));
 }
+
+export * from "./rp-api";

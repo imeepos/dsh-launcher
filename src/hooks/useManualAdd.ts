@@ -7,6 +7,7 @@ function useManualAdd(onAdded: () => void, onClose: () => void) {
   const [bin, setBin] = useState("");
   const [cwd, setCwd] = useState("");
   const [id, setId] = useState("");
+  const [tool, setTool] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -14,7 +15,12 @@ function useManualAdd(onAdded: () => void, onClose: () => void) {
     setSubmitting(true);
     setErr(null);
     try {
-      const entry = await addManualVersion(bin, cwd.trim() ? cwd : null, id.trim() ? id : null);
+      const entry = await addManualVersion(
+        bin,
+        cwd.trim() ? cwd : null,
+        id.trim() ? id : null,
+        tool.trim() ? tool : null,
+      );
       showSuccess("已添加版本 " + entry.id);
       onAdded();
       onClose();
@@ -25,7 +31,7 @@ function useManualAdd(onAdded: () => void, onClose: () => void) {
     }
   }
 
-  return { bin, cwd, id, err, submitting, setBin, setCwd, setId, submit };
+  return { bin, cwd, id, tool, err, submitting, setBin, setCwd, setId, setTool, submit };
 }
 
 export default useManualAdd;

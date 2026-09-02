@@ -9,10 +9,8 @@ export default function ManualAddDialog({
   onClose: () => void;
   onAdded: () => void;
 }) {
-  const { bin, cwd, id, err, submitting, setBin, setCwd, setId, submit } = useManualAdd(
-    onAdded,
-    onClose,
-  );
+  const { bin, cwd, id, tool, err, submitting, setBin, setCwd, setId, setTool, submit } =
+    useManualAdd(onAdded, onClose);
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
@@ -22,9 +20,11 @@ export default function ManualAddDialog({
           bin={bin}
           cwd={cwd}
           id={id}
+          tool={tool}
           onBinChange={setBin}
           onCwdChange={setCwd}
           onIdChange={setId}
+          onToolChange={setTool}
         />
         {err && <p className="error">{err}</p>}
         <div className="modal-actions">

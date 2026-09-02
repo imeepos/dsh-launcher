@@ -1,9 +1,10 @@
-export type LauncherView = "launch" | "versions" | "homes";
+export type LauncherView = "launch" | "versions" | "homes" | "catalog";
 
 const TABS: { id: LauncherView; label: string }[] = [
   { id: "launch", label: "启动台" },
-  { id: "versions", label: "版本库" },
-  { id: "homes", label: "Homes" },
+  { id: "versions", label: "工具库" },
+  { id: "homes", label: "DSH Homes" },
+  { id: "catalog", label: "目录" },
 ];
 
 // 顶栏视图切换:选中态 = 抬升底板 + 蓝字 + 底部 3px 指示条。

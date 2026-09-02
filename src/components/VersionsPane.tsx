@@ -5,6 +5,7 @@ import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import InstallDialog from "./InstallDialog";
 import ManualAddDialog from "./ManualAddDialog";
 import PanelHeader from "./PanelHeader";
+import ToolRunDialog from "./ToolRunDialog";
 import VersionTable from "./VersionTable";
 import { showFailure } from "../hooks/toastStore";
 
@@ -40,12 +41,14 @@ function VersionDialogs({
   manualOpen,
   installOpen,
   deleteTarget,
+  runTarget,
   close,
 }: {
   refresh: () => Promise<void>;
   manualOpen: boolean;
   installOpen: boolean;
   deleteTarget: VersionEntry | null;
+  runTarget: VersionEntry | null;
   close: () => void;
 }) {
   return (
@@ -53,6 +56,7 @@ function VersionDialogs({
       {manualOpen && <ManualAddDialog onClose={close} onAdded={refresh} />}
       {installOpen && <InstallDialog onClose={close} onDone={refresh} />}
       {deleteTarget && <DeleteConfirmDialog version={deleteTarget} onClose={close} onDeleted={refresh} />}
+      {runTarget && <ToolRunDialog version={runTarget} onClose={close} />}
     </>
   );
 }
@@ -67,7 +71,7 @@ export default function VersionsPane({
   const [manualOpen, setManualOpen] = useState(false);
   const [installOpen, setInstallOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<VersionEntry | null>(null);
-  // 对话框回调里的刷新失败不打断流程,轻提醒即可。
+  const [runTarget, setRunTarget] = useState<VersionEntry | null>(null);
   const refreshAfterAction = useCallback(
     () => refresh().catch((e) => showFailure("刷新失败", e)),
     [refresh],
@@ -80,11 +84,12 @@ export default function VersionsPane({
     setManualOpen(false);
     setInstallOpen(false);
     setDeleteTarget(null);
+    setRunTarget(null);
   };
   return (
     <section className="pane">
       <PanelHeader
-        title="版本库"
+        title="工具库"
         actions={
           <PaneActions
             refresh={refresh}
@@ -94,13 +99,19 @@ export default function VersionsPane({
         }
       />
       <div className="pane-body">
-        <VersionTable versions={versions} onFingerprint={doFingerprint} onDelete={setDeleteTarget} />
+        <VersionTable
+          versions={versions}
+          onFingerprint={doFingerprint}
+          onDelete={setDeleteTarget}
+          onRun={setRunTarget}
+        />
       </div>
       <VersionDialogs
         refresh={refreshAfterAction}
         manualOpen={manualOpen}
         installOpen={installOpen}
         deleteTarget={deleteTarget}
+        runTarget={runTarget}
         close={close}
       />
     </section>
