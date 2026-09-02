@@ -1,10 +1,11 @@
 # dsh-launcher 设计文档
 
-Rust + Tauri 2 桌面启动器：可视化管理多版本 DSH、多 DSH_HOME、多 profile。
+Rust + Tauri 2 桌面应用：**AI 时代的第一步**——为普通人自动体检宿主环境、安装配置 AI
+工具与基础环境，托管化保证可卸载、可重装、可备份恢复。
 
-> **定位升级（2026-09）**：应用整体定位为「所有命令行工具/无界面工具/非客户端 GUI 工具的
-> 统一可视化管理桌面」，对接 release-platform 作安装源；DSH 专用链路保留为其中一环。
-> 见 DESIGN-TOOLS.md。萌新首跑与环境自愈见 DESIGN-ONBOARDING.md。
+> **定位重构（2026-09-03）**：产品宪章见 DESIGN-PRODUCT.md；数据模型 v2 见 DESIGN-DB.md。
+> 旧「统一工具台」定位文档（DESIGN-TOOLS.md/DESIGN-UI.md）已作废删除。
+> DSH 语义基准与首跑向导（DESIGN-ONBOARDING.md）在涉及 dsh 组件与向导壳时仍有效。
 
 ## dsh 语义基准（设计依据，勿凭感觉改）
 
