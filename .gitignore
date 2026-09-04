@@ -25,3 +25,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local secrets; worktree checkouts (hook keeps .env out of VCS)
+.env
+.worktrees/

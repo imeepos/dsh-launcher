@@ -1,0 +1,65 @@
+#!/bin/sh
+# post-checkout: 为新检出的 worktree 自动接入 .env。
+#
+# 分支检出时(含 git worktree add 与启用钩子后的首次 clone 检出)触发:
+#   - 已有 .env 一律不动;
+#   - 缺失时优先从主 worktree 复制真实配置,主 worktree 也没有则用
+#     .env.example 兜底;
+#   - 只做文件判断与复制,绝不读取/打印 env 文件内容。
+# post-checkout 的退出码不影响检出结果,仍显式 exit 0 保持语义。
+
+set -u
+
+log()  { printf '[env-hook] %s\n' "$1"; }
+warn() { printf '[env-hook] WARNING: %s\n' "$1" >&2; }
+
+# 只处理分支级检出;单文件检出(flag=0)跳过。
+[ "${3:-0}" = "1" ] || exit 0
+
+top=$(git rev-parse --show-toplevel 2>/dev/null) || top="$(pwd)"
+if [ -f "$top/.env" ]; then
+  log ".env already present in $top, untouched"
+  exit 0
+fi
+
+# 主 worktree 根 = 公共 git 目录(<root>/.git)的父目录;仅当它确实属于
+# 本仓库时才采纳,防止 separate-git-dir 等布局误拷贝无关目录的 .env。
+common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
+  || common=$(git rev-parse --git-common-dir 2>/dev/null) \
+  || common=""
+case "$common" in
+  /*) ;;
+  ?*) common="$top/$common" ;;
+esac
+
+primary_env=""
+case "$common" in
+  */.git)
+    candidate="${common%/.git}"
+    if [ -f "$candidate/.env" ] &&
+       [ "$(git -C "$candidate" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" = "$common" ]; then
+      primary_env="$candidate/.env"
+    fi
+    ;;
+esac
+
+if [ -n "$primary_env" ]; then
+  if cp "$primary_env" "$top/.env"; then
+    log ".env provisioned from primary worktree"
+  else
+    warn "cp $primary_env failed; .env not provisioned"
+  fi
+  exit 0
+fi
+
+if [ -f "$top/.env.example" ]; then
+  if cp "$top/.env.example" "$top/.env"; then
+    warn ".env provisioned from .env.example template; replace placeholder values with real ones"
+  else
+    warn "cp .env.example failed; .env not provisioned"
+  fi
+  exit 0
+fi
+
+warn "no .env in primary worktree and no tracked .env.example; .env not provisioned"
+exit 0
